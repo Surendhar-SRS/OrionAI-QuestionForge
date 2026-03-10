@@ -19,7 +19,7 @@ class GeneratorAgent:
         """
 
         # 3. Call LLM
-        response = llm_service.generate_response(prompt, system_prompt="You are a strict JSON generator.")
+        response = await llm_service.generate_response(prompt, system_prompt="You are a strict JSON generator.")
         
         # 4. Parse JSON (Basic cleanup)
         try:
@@ -48,7 +48,7 @@ class GeneratorAgent:
         3. Maintain the same Bloom's level and difficulty if not asked to change.
         """
         
-        response = llm_service.generate_response(prompt, system_prompt="You are a strict JSON generator. Return ONLY the JSON.")
+        response = await llm_service.generate_response(prompt, system_prompt="You are a strict JSON generator. Return ONLY the JSON.")
         
         try:
             clean_response = response.replace("```json", "").replace("```", "").strip()
