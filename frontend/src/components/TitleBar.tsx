@@ -5,6 +5,12 @@ declare global {
     interface Window {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         require: (module: string) => any;
+        electronAPI?: {
+            windowMinimize: () => void;
+            windowMaximize: () => void;
+            windowFullscreen: () => void;
+            windowClose: () => void;
+        };
     }
 }
 
@@ -15,38 +21,34 @@ const TitleBar = () => {
     useEffect(() => {
         // Check if running in Electron using safer detection
         const userAgent = navigator.userAgent.toLowerCase();
-        if (userAgent.indexOf(' electron/') > -1 || (window.require && window.require('electron'))) {
+        if (userAgent.indexOf(' electron/') > -1 || window.electronAPI) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsElectron(true);
         }
     }, []);
 
     const handleMinimize = () => {
-        if (isElectron && window.require) {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.send('window-minimize');
+        if (isElectron && window.electronAPI) {
+            window.electronAPI.windowMinimize();
         }
     };
 
     const handleMaximize = () => {
-        if (isElectron && window.require) {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.send('window-maximize');
+        if (isElectron && window.electronAPI) {
+            window.electronAPI.windowMaximize();
             setIsMaximized(!isMaximized);
         }
     };
 
     const handleFullscreen = () => {
-        if (isElectron && window.require) {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.send('window-fullscreen');
+        if (isElectron && window.electronAPI) {
+            window.electronAPI.windowFullscreen();
         }
     };
 
     const handleClose = () => {
-        if (isElectron && window.require) {
-            const { ipcRenderer } = window.require('electron');
-            ipcRenderer.send('window-close');
+        if (isElectron && window.electronAPI) {
+            window.electronAPI.windowClose();
         }
     };
 

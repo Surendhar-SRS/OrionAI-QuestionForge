@@ -9,9 +9,8 @@ function createWindow() {
     frame: false, // Frameless window
     backgroundColor: '#0f172a', // Match dark theme background
     webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.cjs'),
+      nodeIntegration: true,
+      contextIsolation: false, // For simple hackathon setup
     },
     titleBarStyle: 'hidden',
     autoHideMenuBar: true,
