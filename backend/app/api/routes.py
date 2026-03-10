@@ -9,9 +9,10 @@ from app.schemas import CourseCreate, CourseRead, QuestionGenerateRequest, Quest
 from app.services.rag_service import rag_service
 from app.services.generator_agent import generator_agent
 from app.services.auditor_agent import auditor_agent
-import shutil
+
 import os
 import tempfile
+import hashlib
 
 import asyncio
 from app.api import auth
@@ -67,10 +68,14 @@ async def ingest_document(
         file_location = temp_file.name
 
     def save_file():
+        hasher = hashlib.sha256()
         with open(file_location, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            while chunk := file.file.read(8192):
+                hasher.update(chunk)
+                buffer.write(chunk)
+        return hasher.hexdigest()
 
-    await asyncio.to_thread(save_file)
+    file_hash = await asyncio.to_thread(save_file)
     
     # Ingest
     try:
@@ -80,7 +85,7 @@ async def ingest_document(
         async with AsyncSession(engine) as session:
             doc = Document(
                 type="Uploaded", 
-                content_hash=safe_filename, # Placeholder hash
+                content_hash=file_hash,
                 file_path=file_location, 
                 course_id=course_id
             )
