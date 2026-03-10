@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev -- --port 5176\" \"wait-on http://localhost:5176 && electron .\"",
-    "electron:pack": "electron-builder --dir"
+    "electron:pack": "electron-builder --dir",
+    "test": "vitest run"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
@@ -46,6 +47,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
+    "vitest": "^4.0.18",
     "wait-on": "^9.0.3"
   },
   "build": {
