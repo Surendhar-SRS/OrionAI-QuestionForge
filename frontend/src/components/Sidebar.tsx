@@ -82,7 +82,9 @@ const Sidebar = () => {
                     <span className="text-xs font-medium text-[var(--muted-foreground)]">Theme</span>
                     <button
                         onClick={toggleTheme}
-                        className="relative w-10 h-5 rounded-full bg-[var(--secondary)] border border-[var(--border)] transition-colors focus:outline-none"
+                        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+                        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+                        className="relative w-10 h-5 rounded-full bg-[var(--secondary)] border border-[var(--border)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                         <div className={clsx(
                             "absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform duration-200 flex items-center justify-center",
@@ -108,8 +110,9 @@ const Sidebar = () => {
                     </div>
                     <button 
                         onClick={handleLogout}
-                        className="text-[var(--muted-foreground)] hover:text-red-500 transition-colors bg-transparent p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/10"
+                        aria-label="Logout"
                         title="Logout"
+                        className="text-[var(--muted-foreground)] hover:text-red-500 transition-colors bg-transparent p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 focus-visible:ring-2 focus-visible:ring-red-500"
                     >
                         <LogOut className="w-4 h-4" />
                     </button>
