@@ -8,6 +8,9 @@ from app.core.auth import get_password_hash, verify_password, create_access_toke
 from app.core.config import settings
 from app.models import User
 from app.schemas import UserCreate, UserRead, Token, TokenData
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.TOKEN_URL)
@@ -50,7 +53,11 @@ async def register(user_in: UserCreate, session: AsyncSession = Depends(get_sess
     try:
         result = await session.exec(statement)
     except Exception as e:
-        raise e
+        logger.error(f"Database error during registration: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while processing the registration.",
+        )
 
     if result.first():
         raise HTTPException(status_code=400, detail="User already exists")
