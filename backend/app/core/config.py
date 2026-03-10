@@ -1,16 +1,25 @@
 import os
 import secrets
+
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     import logging
-    logging.warning("python-dotenv not installed, environment variables from .env will not be loaded.")
+
+    logging.warning(
+        "python-dotenv not installed, environment variables from .env will not be loaded."
+    )
+
 
 class Settings:
     PROJECT_NAME: str = "Question Bank Generator"
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@db:5432/qgen")
-    
+    TOKEN_URL: str = os.getenv("TOKEN_URL", "api/auth/login")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@db:5432/qgen"
+    )
+
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     if not SECRET_KEY:
         # In production, this should be set in environment variables.
@@ -19,5 +28,6 @@ class Settings:
 
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+
 
 settings = Settings()
