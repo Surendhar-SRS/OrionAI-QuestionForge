@@ -59,20 +59,15 @@ const Dashboard = () => {
 
     const auditMutation = useMutation({
         mutationFn: ({ id, t }: { id: number, t: string }) => auditQuestion(id, t),
-        onSuccess: (result) => {
-            setSelectedAudit(result);
+        onSuccess: (result, variables) => {
+            setSelectedAudit({ ...result, questionId: variables.id });
         }
     });
 
     const refineMutation = useMutation({
         mutationFn: () => {
             if (!selectedAudit) throw new Error("No audit selected");
-            // Find the question ID from the audit logs or pass it through
-            // The audit result from backend (auditor_agent.audit_question) just returns { score, feedback, actions }
-            // We need the question ID. 
-            // We should modify auditMutation to pass the QUESTION ID along with the result, or store it.
-            // Let's assume we can pass it via closure or state, but let's just store the whole context in selectedAudit.
-           return refineQuestion(selectedAudit.questionId, selectedAudit.feedback, topic);
+            return refineQuestion(selectedAudit.questionId, selectedAudit.feedback, topic);
         },
         onSuccess: (updatedQuestion) => {
             setQuestions(questions.map(q => q.id === updatedQuestion.id ? updatedQuestion : q));
@@ -81,12 +76,7 @@ const Dashboard = () => {
     });
 
     const handleAuditClick = (qId: number, t: string) => {
-        auditMutation.mutate({ id: qId, t }, {
-            onSuccess: (data) => {
-                // Attach questionId to the data so we can use it for refinement
-                setSelectedAudit({ ...data, questionId: qId });
-            }
-        });
+        auditMutation.mutate({ id: qId, t });
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
