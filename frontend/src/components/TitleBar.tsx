@@ -3,7 +3,8 @@ import { Minus, X, Copy, Maximize2 } from 'lucide-react';
 
 declare global {
     interface Window {
-        require: any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        require: (module: string) => any;
     }
 }
 
