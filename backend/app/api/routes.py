@@ -11,6 +11,7 @@ from app.services.generator_agent import generator_agent
 from app.services.auditor_agent import auditor_agent
 import shutil
 import os
+import tempfile
 
 import asyncio
 from app.api import auth
@@ -59,7 +60,11 @@ async def ingest_document(
     safe_filename = os.path.basename(filename.replace("\\", "/"))
     if not safe_filename or safe_filename == "." or safe_filename == "..":
         safe_filename = "unnamed_file"
-    file_location = f"temp_{safe_filename}"
+
+    # Use a secure temporary file
+    _, extension = os.path.splitext(safe_filename)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as temp_file:
+        file_location = temp_file.name
 
     def save_file():
         with open(file_location, "wb") as buffer:
