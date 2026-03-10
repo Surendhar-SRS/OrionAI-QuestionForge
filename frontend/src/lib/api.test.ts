@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { register, api } from './api';
+import { register, getCourses, api } from './api';
 
 describe('api.ts', () => {
   beforeEach(() => {
@@ -35,6 +35,37 @@ describe('api.ts', () => {
 
       // Act & Assert
       await expect(register('test@example.com', 'password123', 'Test User')).rejects.toThrow('Network Error');
+    });
+  });
+
+  describe('getCourses', () => {
+    it('should call api.get with correct parameters and return response data', async () => {
+      // Arrange
+      const mockData = [
+        { id: 1, name: 'Course 1', code: 'CS101' },
+        { id: 2, name: 'Course 2', code: 'CS102' }
+      ];
+      const mockResponse = { data: mockData };
+
+      // Use vi.spyOn to intercept api.get
+      vi.spyOn(api, 'get').mockResolvedValueOnce(mockResponse as any);
+
+      // Act
+      const result = await getCourses();
+
+      // Assert
+      expect(api.get).toHaveBeenCalledTimes(1);
+      expect(api.get).toHaveBeenCalledWith('/courses/');
+      expect(result).toEqual(mockData);
+    });
+
+    it('should throw an error if api.get fails', async () => {
+      // Arrange
+      const mockError = new Error('Network Error');
+      vi.spyOn(api, 'get').mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(getCourses()).rejects.toThrow('Network Error');
     });
   });
 });
