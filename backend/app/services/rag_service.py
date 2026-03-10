@@ -1,8 +1,7 @@
-from typing import List, Optional
+from typing import List
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import PGVector
 from app.core.database import DATABASE_URL
 import os
