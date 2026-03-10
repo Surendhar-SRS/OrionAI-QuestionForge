@@ -54,7 +54,11 @@ async def ingest_document(
     if not course or course.creator_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to access this course")
     # Save file temporarily
-    file_location = f"temp_{file.filename}"
+    filename = file.filename or "unnamed_file"
+    safe_filename = os.path.basename(filename.replace("\\", "/"))
+    if not safe_filename or safe_filename == "." or safe_filename == "..":
+        safe_filename = "unnamed_file"
+    file_location = f"temp_{safe_filename}"
 
     def save_file():
         with open(file_location, "wb") as buffer:
@@ -70,14 +74,14 @@ async def ingest_document(
         async with AsyncSession(engine) as session:
             doc = Document(
                 type="Uploaded", 
-                content_hash=file.filename, # Placeholder hash
+                content_hash=safe_filename, # Placeholder hash
                 file_path=file_location, 
                 course_id=course_id
             )
             session.add(doc)
             await session.commit()
             
-        return {"status": "Ingested", "filename": file.filename}
+        return {"status": "Ingested", "filename": safe_filename}
     finally:
         if os.path.exists(file_location):
             os.remove(file_location)
