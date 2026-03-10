@@ -79,13 +79,19 @@ const CourseSetup = () => {
                 <div className="flex items-center space-x-1 bg-[var(--card)] border border-[var(--border)] rounded-lg p-1">
                     <button 
                         onClick={() => setViewMode('grid')}
-                        className={clsx("p-1.5 rounded-md transition-colors", viewMode === 'grid' ? "bg-[var(--secondary)] text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]")}
+                        aria-label="Grid view"
+                        title="Grid view"
+                        aria-pressed={viewMode === 'grid'}
+                        className={clsx("p-1.5 rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-blue-500", viewMode === 'grid' ? "bg-[var(--secondary)] text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]")}
                     >
                         <LayoutGrid className="w-4 h-4" />
                     </button>
                     <button 
                         onClick={() => setViewMode('list')}
-                        className={clsx("p-1.5 rounded-md transition-colors", viewMode === 'list' ? "bg-[var(--secondary)] text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]")}
+                        aria-label="List view"
+                        title="List view"
+                        aria-pressed={viewMode === 'list'}
+                        className={clsx("p-1.5 rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-blue-500", viewMode === 'list' ? "bg-[var(--secondary)] text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]")}
                     >
                         <ListIcon className="w-4 h-4" />
                     </button>

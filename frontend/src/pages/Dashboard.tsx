@@ -127,7 +127,9 @@ const Dashboard = () => {
                                 </h3>
                                 <button 
                                     onClick={() => setSelectedAudit(null)}
-                                    className="p-1.5 rounded-md hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                                    aria-label="Close audit modal"
+                                    title="Close audit modal"
+                                    className="p-1.5 rounded-md hover:bg-[var(--secondary)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors focus-visible:ring-2 focus-visible:ring-blue-500"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -376,10 +378,18 @@ const Dashboard = () => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                              <div className="flex items-center space-x-2 bg-[var(--card)] border border-[var(--border)] rounded-lg p-1">
-                                <button className="p-1.5 bg-[var(--secondary)] text-[var(--foreground)] rounded-md shadow-sm transition-all">
+                                <button
+                                    aria-label="Grid view"
+                                    title="Grid view"
+                                    className="p-1.5 bg-[var(--secondary)] text-[var(--foreground)] rounded-md shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-500"
+                                >
                                     <LayoutGrid className="w-4 h-4" />
                                 </button>
-                                <button className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-md transition-all hover:bg-[var(--secondary)]/50">
+                                <button
+                                    aria-label="More options"
+                                    title="More options"
+                                    className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-md transition-all hover:bg-[var(--secondary)]/50 focus-visible:ring-2 focus-visible:ring-blue-500"
+                                >
                                     <MoreHorizontal className="w-4 h-4" />
                                 </button>
                             </div>
@@ -451,20 +461,23 @@ const Dashboard = () => {
                                                     <p><span className="font-medium text-[var(--foreground)]">Answer:</span> {q.answer_key}</p>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
                                                 <motion.button 
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => handleAuditClick(q.id, topic)}
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-800"
+                                                    aria-label="Audit Question"
                                                     title="Audit Question"
+                                                    className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-500"
                                                 >
                                                     <CheckCircle className="w-5 h-5" />
                                                 </motion.button>
                                                 <motion.button 
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
-                                                    className="p-2 text-[var(--muted-foreground)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-800"
+                                                    aria-label="Report Issue"
+                                                    title="Report Issue"
+                                                    className="p-2 text-[var(--muted-foreground)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-800 focus-visible:ring-2 focus-visible:ring-red-500"
                                                 >
                                                     <AlertCircle className="w-5 h-5" />
                                                 </motion.button>
