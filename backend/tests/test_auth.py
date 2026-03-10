@@ -1,5 +1,6 @@
 from datetime import timedelta, datetime, timezone
 from jose import jwt
+import pytest
 from app.core.auth import create_access_token, verify_password, get_password_hash
 from app.core.config import settings
 
@@ -33,3 +34,22 @@ def test_create_access_token_expires_delta():
     expected_expire = datetime.now(timezone.utc).replace(tzinfo=None) + expires_delta
     token_expire = datetime.fromtimestamp(decoded["exp"], tz=timezone.utc).replace(tzinfo=None)
     assert abs((token_expire - expected_expire).total_seconds()) < 10
+
+def test_verify_password_correct():
+    password = "correcthorsebatterystaple"
+    hashed = get_password_hash(password)
+    assert verify_password(password, hashed) is True
+
+def test_verify_password_invalid_hash():
+    password = "testpassword"
+    with pytest.raises(ValueError):
+        verify_password(password, "")
+
+def test_verify_password_empty_password():
+    password = ""
+    hashed = get_password_hash("testpassword")
+    assert verify_password(password, hashed) is False
+
+def test_verify_password_empty_both():
+    with pytest.raises(ValueError):
+        verify_password("", "")
