@@ -10,14 +10,17 @@ sys.modules['langchain_community.document_loaders'] = MagicMock()
 sys.modules['langchain_community.vectorstores'] = MagicMock()
 sys.modules['langchain_huggingface'] = MagicMock()
 
-sys.modules['backend.app.services.rag_service'] = MagicMock()
-sys.modules['backend.app.services.llm_service'] = MagicMock()
+sys.modules['app.services.rag_service'] = MagicMock()
+from unittest.mock import AsyncMock
+mock_llm = MagicMock()
+mock_llm.generate_response = AsyncMock()
+sys.modules['app.services.llm_service'] = MagicMock(llm_service=mock_llm)
 
 import app.services.generator_agent as ga
 
 @pytest.mark.asyncio
-@patch('backend.app.services.generator_agent.rag_service.retrieve_context')
-@patch('backend.app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
+@patch('app.services.generator_agent.rag_service.retrieve_context')
+@patch('app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
 async def test_caching(mock_generate_response, mock_retrieve_context):
     mock_retrieve_context.return_value = ["Context 1"]
 
@@ -44,8 +47,8 @@ async def test_caching(mock_generate_response, mock_retrieve_context):
     assert t2 < t1 / 2, f"Second run should be much faster. t1={t1:.4f}, t2={t2:.4f}"
 
 @pytest.mark.asyncio
-@patch('backend.app.services.generator_agent.rag_service.retrieve_context')
-@patch('backend.app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
+@patch('app.services.generator_agent.rag_service.retrieve_context')
+@patch('app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
 async def test_generate_question_error_handling(mock_generate_response, mock_retrieve_context):
     # Setup mock to return invalid JSON
     mock_retrieve_context.return_value = ["Context 1"]
@@ -58,7 +61,7 @@ async def test_generate_question_error_handling(mock_generate_response, mock_ret
     assert result is None
 
 @pytest.mark.asyncio
-@patch('backend.app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
+@patch('app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
 async def test_refine_question_error_handling(mock_generate_response):
     # Setup mock to return invalid JSON
     mock_generate_response.return_value = "INVALID"
