@@ -5,11 +5,10 @@ from app.core.database import engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # In production, use Alembic. For hackathon, create tables on startup.
-    async with engine.begin() as conn:
-        # Import models to ensure they are registered with SQLModel
-        from app import models
-        await conn.run_sync(SQLModel.metadata.create_all)
+    # Use Alembic for database migrations
+    from app.core.migrations import run_migrations
+    import asyncio
+    await asyncio.to_thread(run_migrations)
     yield
 
 app = FastAPI(title="Question Bank Generator", lifespan=lifespan)
