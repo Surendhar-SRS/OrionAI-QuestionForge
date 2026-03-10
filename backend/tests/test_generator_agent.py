@@ -16,15 +16,16 @@ sys.modules['backend.app.services.llm_service'] = MagicMock()
 import backend.app.services.generator_agent as ga
 
 @pytest.mark.asyncio
-async def test_caching():
-    ga.rag_service.retrieve_context = MagicMock(return_value=["Context 1"])
-    ga.llm_service.generate_response = AsyncMock()
+@patch('backend.app.services.generator_agent.rag_service.retrieve_context')
+@patch('backend.app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
+async def test_caching(mock_generate_response, mock_retrieve_context):
+    mock_retrieve_context.return_value = ["Context 1"]
 
     async def delayed_generate(*args, **kwargs):
         await asyncio.sleep(0.5)
         return '```json\n{"text": "Q", "type": "MCQ", "marks": 5, "answer_key": "A", "rubric": "R"}\n```'
 
-    ga.llm_service.generate_response.side_effect = delayed_generate
+    mock_generate_response.side_effect = delayed_generate
 
     # Run once
     import time
@@ -41,3 +42,29 @@ async def test_caching():
     assert res1 == res2
     # Verify time saved
     assert t2 < t1 / 2, f"Second run should be much faster. t1={t1:.4f}, t2={t2:.4f}"
+
+@pytest.mark.asyncio
+@patch('backend.app.services.generator_agent.rag_service.retrieve_context')
+@patch('backend.app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
+async def test_generate_question_error_handling(mock_generate_response, mock_retrieve_context):
+    # Setup mock to return invalid JSON
+    mock_retrieve_context.return_value = ["Context 1"]
+    mock_generate_response.return_value = "NOT A JSON"
+
+    # Run function with a unique topic so it doesn't hit cache
+    result = await ga.generator_agent.generate_question(1, "Remember", "Easy", "History")
+
+    # Verify that the Exception caught block returns None
+    assert result is None
+
+@pytest.mark.asyncio
+@patch('backend.app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
+async def test_refine_question_error_handling(mock_generate_response):
+    # Setup mock to return invalid JSON
+    mock_generate_response.return_value = "INVALID"
+
+    # Run function
+    result = await ga.generator_agent.refine_question({"text": "Original"}, "Make it harder", "Context", "Math")
+
+    # Verify exception caught
+    assert result is None
