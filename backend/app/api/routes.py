@@ -183,7 +183,7 @@ async def refine_question_endpoint(
         # For efficiency we might skip RAG here or just pass topic. 
         # Let's do a lightweight context retrieval or just rely on the question itself.
         # We'll re-fetch context to be safe.
-        context = rag_service.retrieve_context(f"{request.topic}", db_question.course_id)
+        context = await asyncio.to_thread(rag_service.retrieve_context, f"{request.topic}", db_question.course_id)
         context_str = "\n".join(context)
         
         # 4. Call Generator Agent to Refine
