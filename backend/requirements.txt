@@ -19,3 +19,4 @@ python-dotenv
 langchain-huggingface
 langchain-postgres
 
+cachetools

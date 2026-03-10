@@ -1,12 +1,25 @@
 import json
+import copy
 import logging
+from cachetools import TTLCache
 from .llm_service import llm_service
 from .rag_service import rag_service
 
 logger = logging.getLogger(__name__)
 
 class GeneratorAgent:
+    def __init__(self):
+        # Cache up to 100 questions for 1 hour to prevent identical redundant generation
+        self._cache = TTLCache(maxsize=100, ttl=3600)
+
     async def generate_question(self, course_id: int, bloom_level: str, difficulty: str, topic: str):
+        cache_key = f"{course_id}_{bloom_level}_{difficulty}_{topic}"
+
+        cached_data = self._cache.get(cache_key)
+        if cached_data:
+            logger.info(f"Returning cached question for {cache_key}")
+            return copy.deepcopy(cached_data)
+
         # 1. Retrieve Context
         context = rag_service.retrieve_context(f"{topic} {bloom_level} {difficulty}", course_id)
         context_str = "\n".join(context)
@@ -31,6 +44,7 @@ class GeneratorAgent:
             data = json.loads(clean_response)
             data['bloom_level'] = bloom_level
             data['difficulty'] = difficulty
+            self._cache[cache_key] = data
             return data
         except Exception as e:
             logger.error(f"Error parsing generation: {e}")
