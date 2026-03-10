@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any
+from typing import TYPE_CHECKING, Optional, List, Dict, Any
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON
 
@@ -15,3 +15,9 @@ class Course(CourseBase, table=True):
     creator: Optional["User"] = Relationship(back_populates="courses")
     documents: List["Document"] = Relationship(back_populates="course")
     questions: List["Question"] = Relationship(back_populates="course")
+
+
+if TYPE_CHECKING:
+    from .user import User
+    from .document import Document
+    from .question import Question

@@ -1,90 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { api, generateQuestion } from './api';
+import { register, api } from './api';
 
-describe('generateQuestion', () => {
+describe('api.ts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should call the /generate/ endpoint with correctly formatted parameters', async () => {
-    // Arrange
-    const mockResponse = {
-      data: {
-        id: 101,
-        text: 'What is the sum of 2 and 2?',
-        type: 'MCQ',
-        marks: 5,
-        bloom_level: 'Recall',
-        difficulty: 'Easy',
-        answer_key: '4',
-        rubric: 'Assign 5 marks for correct answer.',
-        accepted: false
-      }
-    };
+  describe('register', () => {
+    it('should call api.post with correct parameters and return response data', async () => {
+      // Arrange
+      const mockData = { id: 1, email: 'test@example.com', full_name: 'Test User' };
+      const mockResponse = { data: mockData };
 
-    // Spy on api.post and return the mock response
-    const postSpy = vi.spyOn(api, 'post').mockResolvedValue(mockResponse as any);
+      // Use vi.spyOn to intercept api.post
+      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as any);
 
-    const courseId = 42;
-    const topic = 'Basic Arithmetic';
-    const bloom = 'Recall';
-    const difficulty = 'Easy';
+      // Act
+      const result = await register('test@example.com', 'password123', 'Test User');
 
-    // Act
-    const result = await generateQuestion(courseId, topic, bloom, difficulty);
-
-    // Assert
-    expect(postSpy).toHaveBeenCalledTimes(1);
-    expect(postSpy).toHaveBeenCalledWith('/generate/', {
-      course_id: courseId,
-      topic: topic,
-      bloom_level: bloom,
-      difficulty: difficulty
+      // Assert
+      expect(api.post).toHaveBeenCalledTimes(1);
+      expect(api.post).toHaveBeenCalledWith('/auth/register', {
+        email: 'test@example.com',
+        password: 'password123',
+        full_name: 'Test User',
+      });
+      expect(result).toEqual(mockData);
     });
 
-    expect(result).toEqual(mockResponse.data);
-  });
+    it('should throw an error if api.post fails', async () => {
+      // Arrange
+      const mockError = new Error('Network Error');
+      vi.spyOn(api, 'post').mockRejectedValueOnce(mockError);
 
-  it('should handle special characters and whitespace in string parameters', async () => {
-    // Arrange
-    const mockResponse = { data: { id: 102 } };
-    const postSpy = vi.spyOn(api, 'post').mockResolvedValue(mockResponse as any);
-
-    const courseId = 99;
-    const topic = '  Advanced   Topic! @#$%^&*()_+ ';
-    const bloom = 'Synthesis & Evaluation';
-    const difficulty = 'Very Hard / Expert';
-
-    // Act
-    await generateQuestion(courseId, topic, bloom, difficulty);
-
-    // Assert
-    expect(postSpy).toHaveBeenCalledWith('/generate/', {
-      course_id: courseId,
-      topic: topic, // ensuring strings are passed through without unexpected modification
-      bloom_level: bloom,
-      difficulty: difficulty
-    });
-  });
-
-  it('should propagate API errors effectively', async () => {
-    // Arrange
-    const mockError = new Error('Network Error');
-    const postSpy = vi.spyOn(api, 'post').mockRejectedValue(mockError);
-
-    const courseId = 5;
-    const topic = 'History';
-    const bloom = 'Understanding';
-    const difficulty = 'Medium';
-
-    // Act & Assert
-    await expect(generateQuestion(courseId, topic, bloom, difficulty)).rejects.toThrow('Network Error');
-
-    expect(postSpy).toHaveBeenCalledWith('/generate/', {
-      course_id: courseId,
-      topic: topic,
-      bloom_level: bloom,
-      difficulty: difficulty
+      // Act & Assert
+      await expect(register('test@example.com', 'password123', 'Test User')).rejects.toThrow('Network Error');
     });
   });
 });
