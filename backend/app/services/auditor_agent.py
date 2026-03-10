@@ -21,7 +21,7 @@ class AuditorAgent:
         }}
         """
 
-        response = llm_service.generate_response(prompt, system_prompt="You are a strict JSON auditor.")
+        response = await llm_service.generate_response(prompt, system_prompt="You are a strict JSON auditor.")
         
         try:
             clean_response = response.replace("```json", "").replace("```", "").strip()

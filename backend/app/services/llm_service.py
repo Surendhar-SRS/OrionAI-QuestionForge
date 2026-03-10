@@ -16,12 +16,12 @@ class LLMService:
             temperature=0.7
         )
 
-    def generate_response(self, prompt: str, system_prompt: str = "You are a helpful AI assistant.") -> str:
+    async def generate_response(self, prompt: str, system_prompt: str = "You are a helpful AI assistant.") -> str:
         messages = [
             SystemMessage(content=system_prompt),
             HumanMessage(content=prompt)
         ]
-        response = self.llm.invoke(messages)
+        response = await self.llm.ainvoke(messages)
         return response.content
 
 llm_service = LLMService()
