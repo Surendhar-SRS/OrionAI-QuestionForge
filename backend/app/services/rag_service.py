@@ -12,10 +12,6 @@ EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 class RAGService:
     def __init__(self):
         self.embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
-        # PGVector connection string needs strict postgresql:// format, not postgresql+asyncpg:// for this specific lib usually?
-        # Check Langchain PGVector. It usually takes a connection string or engine.
-        # We'll use the sync connection string for simplicity in RAG service or adapt.
-        # For now, let's assume valid connection string.
         self.connection_string = DATABASE_URL.replace("+asyncpg", "") 
         
         self.vector_store = PGVector(
