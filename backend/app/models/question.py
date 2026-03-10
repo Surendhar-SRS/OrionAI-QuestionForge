@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any
+from typing import TYPE_CHECKING, Optional, List, Dict, Any
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON
 
@@ -18,3 +18,8 @@ class Question(QuestionBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     course: Optional["Course"] = Relationship(back_populates="questions")
     audit_logs: List["AuditLog"] = Relationship(back_populates="question")
+
+
+if TYPE_CHECKING:
+    from .course import Course
+    from .audit_log import AuditLog

@@ -1,9 +1,6 @@
 from datetime import datetime, timezone
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 from sqlmodel import SQLModel, Field, Relationship
-
-if TYPE_CHECKING:
-    from .course import Course
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -15,3 +12,8 @@ class User(SQLModel, table=True):
 
     # Relationships
     courses: List["Course"] = Relationship(back_populates="creator")
+
+
+
+if TYPE_CHECKING:
+    from .course import Course

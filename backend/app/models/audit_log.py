@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import TYPE_CHECKING, Optional, Dict, Any
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON
 
@@ -12,3 +12,7 @@ class AuditLogBase(SQLModel):
 class AuditLog(AuditLogBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     question: Optional["Question"] = Relationship(back_populates="audit_logs")
+
+
+if TYPE_CHECKING:
+    from .question import Question
