@@ -11,6 +11,7 @@ from app.services.auditor_agent import auditor_agent
 import shutil
 import os
 
+import asyncio
 from app.api import auth
 
 router = APIRouter()
@@ -54,8 +55,12 @@ async def ingest_document(
         raise HTTPException(status_code=403, detail="Not authorized to access this course")
     # Save file temporarily
     file_location = f"temp_{file.filename}"
-    with open(file_location, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+
+    def save_file():
+        with open(file_location, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+    await asyncio.to_thread(save_file)
     
     # Ingest
     try:
