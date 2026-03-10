@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getStats, getAuditLogs } from '../lib/api';
+import { CHART_COLORS } from '../lib/constants';
 import { 
     BarChart, 
     Bar, 
@@ -23,8 +24,6 @@ import {
     CheckCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'];
 
 const AuditReport = () => {
     const activeCourseIdString = localStorage.getItem('activeCourseId');
@@ -164,7 +163,7 @@ const AuditReport = () => {
                                     strokeWidth={4}
                                 >
                                     {difficultyData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                                     ))}
                                 </Pie>
                                 <Tooltip 
@@ -208,7 +207,7 @@ const AuditReport = () => {
                             <p className="text-[var(--muted-foreground)] max-w-xs mx-auto mt-2 text-sm">Initiate an AI audit on individual questions to populate this stream.</p>
                         </div>
                     ) : (
-                        logs?.map((log: any) => (
+                        logs?.map((log: Record<string, any>) => (
                             <div key={log.id} className="border border-[var(--border)] rounded-2xl p-6 hover:bg-[var(--secondary)]/50 transition-all flex flex-col md:flex-row gap-6">
                                 <div className="md:w-32 flex flex-col justify-center items-center p-4 bg-[var(--secondary)] rounded-xl border border-[var(--border)]">
                                     <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-tighter mb-1">Score</span>
