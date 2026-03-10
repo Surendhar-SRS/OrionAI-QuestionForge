@@ -3,7 +3,8 @@ import { Minus, X, Copy, Maximize2 } from 'lucide-react';
 
 declare global {
     interface Window {
-        require: any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        require: (module: string) => any;
     }
 }
 
@@ -15,6 +16,7 @@ const TitleBar = () => {
         // Check if running in Electron using safer detection
         const userAgent = navigator.userAgent.toLowerCase();
         if (userAgent.indexOf(' electron/') > -1 || (window.require && window.require('electron'))) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsElectron(true);
         }
     }, []);
