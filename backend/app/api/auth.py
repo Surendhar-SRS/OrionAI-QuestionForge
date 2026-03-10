@@ -38,36 +38,25 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSe
 
 @router.post("/register", response_model=UserRead)
 async def register(user_in: UserCreate, session: AsyncSession = Depends(get_session)):
-    print(f"DEBUG: Registering user {user_in.email}")
     # Check if user exists
     statement = select(User).where(User.email == user_in.email)
-    print("DEBUG: Executing select statement")
     try:
         result = await session.exec(statement)
-        print("DEBUG: Select executed")
     except Exception as e:
-        print(f"DEBUG: Select failed {e}")
         raise e
 
     if result.first():
-        print("DEBUG: User exists")
         raise HTTPException(status_code=400, detail="User already exists")
     
-    print("DEBUG: Hashing password")
     hashed_pw = get_password_hash(user_in.password)
-    print("DEBUG: Creating user object")
     db_user = User(
         email=user_in.email,
         full_name=user_in.full_name,
         hashed_password=hashed_pw
     )
-    print("DEBUG: Adding to session")
     session.add(db_user)
-    print("DEBUG: Committing")
     await session.commit()
-    print("DEBUG: Refreshing")
     await session.refresh(db_user)
-    print("DEBUG: Done")
     return db_user
 
 @router.post("/login", response_model=Token)
