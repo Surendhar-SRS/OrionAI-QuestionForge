@@ -29,5 +29,14 @@ class Settings:
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
+    BACKEND_CORS_ORIGINS: list[str] = [
+        origin.strip()
+        for origin in os.getenv(
+            "BACKEND_CORS_ORIGINS",
+            "http://localhost:5173,http://localhost:5176,http://localhost:8000,http://localhost",
+        ).split(",")
+        if origin.strip()
+    ]
+
 
 settings = Settings()

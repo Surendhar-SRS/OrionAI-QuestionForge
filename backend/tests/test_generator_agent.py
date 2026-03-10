@@ -13,7 +13,7 @@ sys.modules['langchain_huggingface'] = MagicMock()
 sys.modules['backend.app.services.rag_service'] = MagicMock()
 sys.modules['backend.app.services.llm_service'] = MagicMock()
 
-import backend.app.services.generator_agent as ga
+import app.services.generator_agent as ga
 
 @pytest.mark.asyncio
 async def test_caching():
