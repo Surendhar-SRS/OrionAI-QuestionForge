@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -21,7 +22,7 @@ class RAGService:
             use_jsonb=True,
         )
 
-    async def ingest_document(self, file_path: str, course_id: int):
+    def _ingest_document_sync(self, file_path: str, course_id: int):
         if file_path.endswith(".pdf"):
             loader = PyPDFLoader(file_path)
         else:
@@ -40,6 +41,9 @@ class RAGService:
 
         # Store in Vector DB
         self.vector_store.add_documents(splits)
+
+    async def ingest_document(self, file_path: str, course_id: int):
+        await asyncio.to_thread(self._ingest_document_sync, file_path, course_id)
 
     def retrieve_context(self, query: str, course_id: int, k: int = 5) -> List[str]:
         # Filter by course_id
