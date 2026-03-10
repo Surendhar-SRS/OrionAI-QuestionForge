@@ -1,6 +1,9 @@
 import json
+import logging
 from .llm_service import llm_service
 from .rag_service import rag_service
+
+logger = logging.getLogger(__name__)
 
 class GeneratorAgent:
     async def generate_question(self, course_id: int, bloom_level: str, difficulty: str, topic: str):
@@ -30,7 +33,7 @@ class GeneratorAgent:
             data['difficulty'] = difficulty
             return data
         except Exception as e:
-            print(f"Error parsing generation: {e}")
+            logger.error(f"Error parsing generation: {e}")
             return None
 
     async def refine_question(self, current_question: dict, critique: str, context_str: str, topic: str):
@@ -58,7 +61,7 @@ class GeneratorAgent:
             data['difficulty'] = current_question.get('difficulty', 'Medium')
             return data
         except Exception as e:
-            print(f"Error parsing refinement: {e}")
+            logger.error(f"Error parsing refinement: {e}")
             return None
 
 generator_agent = GeneratorAgent()
