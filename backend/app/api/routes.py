@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy import func
 from sqlmodel import select
 from typing import List
 from app.core.database import engine
@@ -239,12 +240,22 @@ async def get_course_stats(
         raise HTTPException(status_code=403, detail="Not authorized to access this course")
     
     # Simplified stats for now
-    statement = select(Question).where(Question.course_id == course_id)
-    result = await session.exec(statement)
-    questions = result.all()
+    total_statement = select(func.count()).select_from(Question).where(Question.course_id == course_id)
+    total_result = await session.exec(total_statement)
+    total = total_result.one()
+
+    bloom_statement = select(Question.bloom_level, func.count()).where(Question.course_id == course_id).group_by(Question.bloom_level)
+    bloom_result = await session.exec(bloom_statement)
+    bloom_counts = dict(bloom_result.all())
+    bloom_dist = {b: bloom_counts.get(b, 0) for b in ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"]}
+
+    diff_statement = select(Question.difficulty, func.count()).where(Question.course_id == course_id).group_by(Question.difficulty)
+    diff_result = await session.exec(diff_statement)
+    diff_counts = dict(diff_result.all())
+    diff_dist = {d: diff_counts.get(d, 0) for d in ["Easy", "Medium", "Hard"]}
     
     return {
-        "total_questions": len(questions),
-        "bloom_distribution": {b: len([q for q in questions if q.bloom_level == b]) for b in ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"]},
-        "difficulty_distribution": {d: len([q for q in questions if q.difficulty == d]) for d in ["Easy", "Medium", "Hard"]}
+        "total_questions": total,
+        "bloom_distribution": bloom_dist,
+        "difficulty_distribution": diff_dist
     }
