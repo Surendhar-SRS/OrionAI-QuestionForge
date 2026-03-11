@@ -207,7 +207,7 @@ const AuditReport = () => {
                             <p className="text-[var(--muted-foreground)] max-w-xs mx-auto mt-2 text-sm">Initiate an AI audit on individual questions to populate this stream.</p>
                         </div>
                     ) : (
-                        logs?.map((log: Record<string, any>) => (
+                        logs?.map((log: Record<string, unknown>) => (
                             <div key={log.id} className="border border-[var(--border)] rounded-2xl p-6 hover:bg-[var(--secondary)]/50 transition-all flex flex-col md:flex-row gap-6">
                                 <div className="md:w-32 flex flex-col justify-center items-center p-4 bg-[var(--secondary)] rounded-xl border border-[var(--border)]">
                                     <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-tighter mb-1">Score</span>

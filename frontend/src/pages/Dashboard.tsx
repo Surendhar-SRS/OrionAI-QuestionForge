@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { 
     generateQuestion, 
@@ -32,7 +32,7 @@ const Dashboard = () => {
     const activeCourseIdString = localStorage.getItem('activeCourseId');
     const activeCourseId = activeCourseIdString ? parseInt(activeCourseIdString) : null;
     
-    const [selectedAudit, setSelectedAudit] = useState<any>(null);
+    const [selectedAudit, setSelectedAudit] = useState<Record<string, unknown> | null>(null);
     const [topic, setTopic] = useState('');
     const [bloom, setBloom] = useState('Understand');
     const [difficulty, setDifficulty] = useState('Medium');
@@ -75,9 +75,9 @@ const Dashboard = () => {
         }
     });
 
-    const handleAuditClick = (qId: number, t: string) => {
+    const handleAuditClick = useCallback((qId: number, t: string) => {
         auditMutation.mutate({ id: qId, t });
-    };
+    }, [auditMutation]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0] && activeCourseId) {
@@ -427,63 +427,12 @@ const Dashboard = () => {
                                 </motion.div>
                             ) : (
                                 questions.map((q) => (
-                                    <motion.div 
-                                        layout
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                    <QuestionCard
                                         key={q.id} 
-                                        className="group bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
-                                    >
-                                        <div className="flex justify-between items-start gap-4">
-                                            <div className="space-y-2 flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={clsx(
-                                                        "text-xs px-2.5 py-1 rounded-full font-medium border",
-                                                        q.difficulty === 'Hard' ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30" :
-                                                        q.difficulty === 'Medium' ? "bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-900/30" :
-                                                        "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30"
-                                                    )}>
-                                                        {q.difficulty}
-                                                    </span>
-                                                    <span className="text-xs px-2.5 py-1 bg-[var(--secondary)] text-[var(--foreground)] rounded-full font-medium border border-[var(--border)]">
-                                                        {q.bloom_level}
-                                                    </span>
-                                                    {/* <span className="text-xs text-[var(--muted-foreground)]">
-                                                        {new Date(q.created_at).toLocaleDateString()}
-                                                    </span> - Removed created_at until available */}
-                                                </div>
-                                                <h4 className="font-medium text-[var(--foreground)] pr-12">{q.text}</h4>
-                                                
-                                                {/* Details Section */}
-                                                <div className="mt-2 text-sm text-[var(--muted-foreground)] space-y-1">
-                                                    <p><span className="font-medium text-[var(--foreground)]">Answer:</span> {q.answer_key}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
-                                                <motion.button 
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    onClick={() => handleAuditClick(q.id, topic)}
-                                                    aria-label="Audit Question"
-                                                    title="Audit Question"
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-500"
-                                                >
-                                                    <CheckCircle className="w-5 h-5" />
-                                                </motion.button>
-                                                <motion.button 
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    aria-label="Report Issue"
-                                                    title="Report Issue"
-                                                    className="p-2 text-[var(--muted-foreground)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-800 focus-visible:ring-2 focus-visible:ring-red-500"
-                                                >
-                                                    <AlertCircle className="w-5 h-5" />
-                                                </motion.button>
-                                            </div>
-                                        </div>
-                                    </motion.div>
+                                        question={q}
+                                        topic={topic}
+                                        onAuditClick={handleAuditClick}
+                                    />
                                 ))
                             )}
                         </AnimatePresence>
@@ -493,5 +442,71 @@ const Dashboard = () => {
         </div>
     );
 };
+
+const QuestionCard = memo(({
+    question: q,
+    topic,
+    onAuditClick
+}: {
+    question: Question,
+    topic: string,
+    onAuditClick: (id: number, t: string) => void
+}) => {
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            className="group bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden"
+        >
+            <div className="flex justify-between items-start gap-4">
+                <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                        <span className={clsx(
+                            "text-xs px-2.5 py-1 rounded-full font-medium border",
+                            q.difficulty === 'Hard' ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30" :
+                            q.difficulty === 'Medium' ? "bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-900/30" :
+                            "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30"
+                        )}>
+                            {q.difficulty}
+                        </span>
+                        <span className="text-xs px-2.5 py-1 bg-[var(--secondary)] text-[var(--foreground)] rounded-full font-medium border border-[var(--border)]">
+                            {q.bloom_level}
+                        </span>
+                    </div>
+                    <h4 className="font-medium text-[var(--foreground)] pr-12">{q.text}</h4>
+
+                    {/* Details Section */}
+                    <div className="mt-2 text-sm text-[var(--muted-foreground)] space-y-1">
+                        <p><span className="font-medium text-[var(--foreground)]">Answer:</span> {q.answer_key}</p>
+                    </div>
+                </div>
+                <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => onAuditClick(q.id, topic)}
+                        aria-label="Audit Question"
+                        title="Audit Question"
+                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-500"
+                    >
+                        <CheckCircle className="w-5 h-5" />
+                    </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-label="Report Issue"
+                        title="Report Issue"
+                        className="p-2 text-[var(--muted-foreground)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-800 focus-visible:ring-2 focus-visible:ring-red-500"
+                    >
+                        <AlertCircle className="w-5 h-5" />
+                    </motion.button>
+                </div>
+            </div>
+        </motion.div>
+    );
+});
 
 export default Dashboard;
