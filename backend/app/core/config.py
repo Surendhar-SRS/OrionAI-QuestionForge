@@ -16,9 +16,9 @@ except ImportError:
 class Settings:
     PROJECT_NAME: str = "Question Bank Generator"
     TOKEN_URL: str = os.getenv("TOKEN_URL", "api/auth/login")
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@db:5432/qgen"
-    )
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+    if not DATABASE_URL:
+        raise ValueError("DATABASE_URL environment variable must be set")
 
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     if not SECRET_KEY:
