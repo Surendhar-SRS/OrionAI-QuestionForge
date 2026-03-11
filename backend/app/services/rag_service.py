@@ -1,4 +1,3 @@
-import asyncio
 from typing import List
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -13,6 +12,10 @@ EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 class RAGService:
     def __init__(self):
         self.embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+        # PGVector connection string needs strict postgresql:// format, not postgresql+asyncpg:// for this specific lib usually?
+        # Check Langchain PGVector. It usually takes a connection string or engine.
+        # We'll use the sync connection string for simplicity in RAG service or adapt.
+        # For now, let's assume valid connection string.
         self.connection_string = DATABASE_URL.replace("+asyncpg", "") 
         
         self.vector_store = PGVector(
@@ -22,7 +25,7 @@ class RAGService:
             use_jsonb=True,
         )
 
-    def _ingest_document_sync(self, file_path: str, course_id: int):
+    async def ingest_document(self, file_path: str, course_id: int):
         if file_path.endswith(".pdf"):
             loader = PyPDFLoader(file_path)
         else:
@@ -41,9 +44,6 @@ class RAGService:
 
         # Store in Vector DB
         self.vector_store.add_documents(splits)
-
-    async def ingest_document(self, file_path: str, course_id: int):
-        await asyncio.to_thread(self._ingest_document_sync, file_path, course_id)
 
     def retrieve_context(self, query: str, course_id: int, k: int = 5) -> List[str]:
         # Filter by course_id

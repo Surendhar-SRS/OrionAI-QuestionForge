@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { register, createCourse, api } from './api';
+import { register, getCourses, api } from './api';
 
 describe('api.ts', () => {
   beforeEach(() => {
@@ -13,7 +13,7 @@ describe('api.ts', () => {
       const mockResponse = { data: mockData };
 
       // Use vi.spyOn to intercept api.post
-      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as never);
+      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as any);
 
       // Act
       const result = await register('test@example.com', 'password123', 'Test User');
@@ -38,32 +38,34 @@ describe('api.ts', () => {
     });
   });
 
-  describe('createCourse', () => {
-    it('should call api.post with correct parameters and return response data', async () => {
+  describe('getCourses', () => {
+    it('should call api.get with correct parameters and return response data', async () => {
       // Arrange
-      const mockCoursePayload = { name: 'New Course', code: 'CS101', blueprint_json: {} };
-      const mockResponseData = { id: 1, ...mockCoursePayload };
-      const mockResponse = { data: mockResponseData };
+      const mockData = [
+        { id: 1, name: 'Course 1', code: 'CS101' },
+        { id: 2, name: 'Course 2', code: 'CS102' }
+      ];
+      const mockResponse = { data: mockData };
 
-      // Use vi.spyOn to intercept api.post
-      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as never);
+      // Use vi.spyOn to intercept api.get
+      vi.spyOn(api, 'get').mockResolvedValueOnce(mockResponse as any);
 
       // Act
-      const result = await createCourse(mockCoursePayload);
+      const result = await getCourses();
 
       // Assert
-      expect(api.post).toHaveBeenCalledTimes(1);
-      expect(api.post).toHaveBeenCalledWith('/courses/', mockCoursePayload);
-      expect(result).toEqual(mockResponseData);
+      expect(api.get).toHaveBeenCalledTimes(1);
+      expect(api.get).toHaveBeenCalledWith('/courses/');
+      expect(result).toEqual(mockData);
     });
 
-    it('should throw an error if api.post fails', async () => {
+    it('should throw an error if api.get fails', async () => {
       // Arrange
       const mockError = new Error('Network Error');
-      vi.spyOn(api, 'post').mockRejectedValueOnce(mockError);
+      vi.spyOn(api, 'get').mockRejectedValueOnce(mockError);
 
       // Act & Assert
-      await expect(createCourse({ name: 'New Course', code: 'CS101', blueprint_json: {} })).rejects.toThrow('Network Error');
+      await expect(getCourses()).rejects.toThrow('Network Error');
     });
   });
 });
