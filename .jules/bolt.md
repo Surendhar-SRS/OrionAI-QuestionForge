@@ -1,3 +1,0 @@
-## 2024-03-11 - React Unnecessary Re-renders on Controlled Inputs
-**Learning:** In a single large view component like `Dashboard.tsx`, maintaining a controlled text input state alongside a large mapped list (like `questions.map(...)`) causes the entire list to re-render on every keystroke. Using framer-motion makes these re-renders even more expensive.
-**Action:** Extract list items into separate `React.memo` components and ensure their callback props (`onClick`) are stable using `useCallback` and `useRef` (for accessing latest state without causing dependency changes). This keeps controlled inputs snappy without requiring complex debouncing logic.
