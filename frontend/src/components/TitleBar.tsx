@@ -75,28 +75,28 @@ const TitleBar = () => {
             <div className="flex h-full" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                  <button 
                     onClick={handleFullscreen}
-                    className="h-full w-12 flex items-center justify-center text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors focus:outline-none"
+                    className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                     title="Fullscreen"
                 >
                     <Maximize2 className="w-3.5 h-3.5" />
                 </button>
                 <button 
                     onClick={handleMinimize}
-                    className="h-full w-12 flex items-center justify-center text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors focus:outline-none"
+                    className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                     title="Minimize"
                 >
                     <Minus className="w-4 h-4" />
                 </button>
                 <button 
                     onClick={handleMaximize}
-                    className="h-full w-12 flex items-center justify-center text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)] transition-colors focus:outline-none"
+                    className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                     title="Maximize"
                 >
                     <Copy className="w-3.5 h-3.5 transform rotate-90" />
                 </button>
                 <button 
                     onClick={handleClose}
-                    className="h-full w-12 flex items-center justify-center text-[var(--muted-foreground)] hover:bg-red-500 hover:text-white transition-colors focus:outline-none"
+                    className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                     title="Close"
                 >
                     <X className="w-4 h-4" />

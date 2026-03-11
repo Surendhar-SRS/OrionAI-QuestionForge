@@ -84,7 +84,7 @@ const Sidebar = () => {
                         onClick={toggleTheme}
                         aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
                         title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-                        className="relative w-10 h-5 rounded-full bg-[var(--secondary)] border border-[var(--border)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                     >
                         <div className={clsx(
                             "absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform duration-200 flex items-center justify-center",
@@ -112,7 +112,7 @@ const Sidebar = () => {
                         onClick={handleLogout}
                         aria-label="Logout"
                         title="Logout"
-                        className="text-[var(--muted-foreground)] hover:text-red-500 transition-colors bg-transparent p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/10 focus-visible:ring-2 focus-visible:ring-red-500"
+                        className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                     >
                         <LogOut className="w-4 h-4" />
                     </button>

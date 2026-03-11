@@ -210,7 +210,7 @@ const CourseSetup = () => {
                                     whileTap={{ scale: 0.98 }}
                                     onClick={handleCreateCourse}
                                     disabled={createCourseMutation.isPending || !name || !code}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-sm"
+                                    className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                                 >
                                     {createCourseMutation.isPending ? (
                                         <Loader2 className="w-4 h-4 animate-spin mr-2" />

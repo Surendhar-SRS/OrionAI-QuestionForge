@@ -20,3 +20,4 @@ langchain-huggingface
 langchain-postgres
 
 cachetools
+instructor

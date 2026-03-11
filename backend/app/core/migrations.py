@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 import sys
@@ -10,6 +9,7 @@ from app.core.database import DATABASE_URL
 sys.path.append(os.getcwd())
 
 logger = logging.getLogger(__name__)
+
 
 def run_migrations():
     """Run database migrations using Alembic."""
@@ -29,6 +29,7 @@ def run_migrations():
         logger.error(f"Error running database migrations: {e}")
         # In a real production environment, you might want to exit here
         # raise e
+
 
 if __name__ == "__main__":
     # Setup logging

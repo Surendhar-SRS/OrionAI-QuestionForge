@@ -254,7 +254,7 @@ const Dashboard = () => {
                                         <div className="w-8 h-8 rounded-full bg-indigo-400 border-2 border-blue-600 flex items-center justify-center text-xs font-bold">AS</div>
                                         <div className="w-8 h-8 rounded-full bg-white/10 border-2 border-blue-600 flex items-center justify-center text-xs backdrop-blur-sm">+3</div>
                                     </div>
-                                    <button className="text-sm font-medium hover:text-white/80 transition-colors flex items-center">
+                                    <button className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]">
                                         Settings <ArrowUpRight className="w-4 h-4 ml-1" />
                                     </button>
                                 </div>
@@ -381,14 +381,14 @@ const Dashboard = () => {
                                 <button
                                     aria-label="Grid view"
                                     title="Grid view"
-                                    className="p-1.5 bg-[var(--secondary)] text-[var(--foreground)] rounded-md shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-blue-500"
+                                    className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                                 >
                                     <LayoutGrid className="w-4 h-4" />
                                 </button>
                                 <button
                                     aria-label="More options"
                                     title="More options"
-                                    className="p-1.5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] rounded-md transition-all hover:bg-[var(--secondary)]/50 focus-visible:ring-2 focus-visible:ring-blue-500"
+                                    className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                                 >
                                     <MoreHorizontal className="w-4 h-4" />
                                 </button>
@@ -398,11 +398,11 @@ const Dashboard = () => {
                             </span>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <button className="flex items-center space-x-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] px-3 py-1.5 rounded-lg transition-all hover:bg-[var(--secondary)]">
+                            <button className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]">
                                 <Filter className="w-4 h-4" />
                                 <span>Filter</span>
                             </button>
-                            <button className="flex items-center space-x-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] px-3 py-1.5 rounded-lg transition-all hover:bg-[var(--secondary)]">
+                            <button className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]">
                                 <Download className="w-4 h-4" />
                                 <span>Export</span>
                             </button>
@@ -499,7 +499,7 @@ const QuestionCard = memo(({
                         whileTap={{ scale: 0.95 }}
                         aria-label="Report Issue"
                         title="Report Issue"
-                        className="p-2 text-[var(--muted-foreground)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-800 focus-visible:ring-2 focus-visible:ring-red-500"
+                        className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
                     >
                         <AlertCircle className="w-5 h-5" />
                     </motion.button>

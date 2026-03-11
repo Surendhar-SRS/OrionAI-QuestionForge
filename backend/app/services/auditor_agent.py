@@ -1,8 +1,20 @@
 import json
 import logging
+from typing import List
+from pydantic import BaseModel, Field
 from .llm_service import llm_service
 
 logger = logging.getLogger(__name__)
+
+
+class AuditFeedback(BaseModel):
+    feedback: str = Field(description="Detailed feedback on the question.")
+    score: int = Field(
+        description="A score between 0 and 10 representing question quality."
+    )
+    actions: List[str] = Field(
+        description="List of actionable suggestions to improve the question."
+    )
 
 
 class AuditorAgent:
@@ -16,22 +28,15 @@ class AuditorAgent:
         1. Clarity
         2. Alignment
         3. Correctness
-        
-        Output strictly valid JSON:
-        {{
-            "feedback": "...",
-            "score": 0-10,
-            "actions": ["Start with 'Explain' instead of 'What'", "Increase difficulty"]
-        }}
         """
 
-        response = await llm_service.generate_response(
-            prompt, system_prompt="You are a strict JSON auditor."
-        )
-
         try:
-            clean_response = response.replace("```json", "").replace("```", "").strip()
-            return json.loads(clean_response)
+            audit_result = await llm_service.generate_structured_response(
+                prompt=prompt,
+                response_model=AuditFeedback,
+                system_prompt="You are a strict JSON auditor.",
+            )
+            return audit_result.model_dump()
         except Exception as e:
             logger.error(f"Error parsing audit: {e}")
             return {"feedback": "Error parsing", "score": 0, "actions": []}

@@ -119,7 +119,7 @@ const AuthPage = () => {
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-medium text-[var(--foreground)]">Password</label>
                                 {isLogin && (
-                                    <button type="button" className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-all">Forgot password?</button>
+                                    <button type="button" className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]">Forgot password?</button>
                                 )}
                             </div>
                             <div className="relative">

@@ -1,7 +1,5 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from sqlmodel import SQLModel
-from app.core.database import engine
 
 
 @asynccontextmanager

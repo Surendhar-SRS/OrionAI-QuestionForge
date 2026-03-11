@@ -73,7 +73,7 @@ const AuditReport = () => {
                     <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">Quality Analytics</h1>
                     <p className="text-[var(--muted-foreground)] mt-1">Intelligence-driven metrics for your assessment bank.</p>
                 </div>
-                <button className="flex items-center justify-center space-x-2 bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] px-5 py-2.5 rounded-xl font-bold hover:bg-[var(--border)] transition-all">
+                <button className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]">
                     <Download className="w-4 h-4" />
                     <span>Report PDF</span>
                 </button>
