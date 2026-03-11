@@ -3,7 +3,8 @@ import sys
 import importlib
 
 # Ensure backend directory is in the path
-sys.path.append(os.path.join(os.getcwd(), 'backend'))
+sys.path.append(os.path.join(os.getcwd(), "backend"))
+
 
 def test_secret_key_randomness():
     # Make sure we don't have the environment variable set
@@ -12,6 +13,7 @@ def test_secret_key_randomness():
 
     # Importing the config
     from app.core import config
+
     importlib.reload(config)
 
     key1 = config.settings.SECRET_KEY
@@ -27,7 +29,10 @@ def test_secret_key_randomness():
     key2 = config.settings.SECRET_KEY
     print(f"Key 2: {key2}")
 
-    assert key1 != key2, "SECRET_KEY should be re-generated for each reload of the config module if no ENV var is set"
+    assert key1 != key2, (
+        "SECRET_KEY should be re-generated for each reload of the config module if no ENV var is set"
+    )
+
 
 def test_secret_key_from_env():
     # Test that it respects the environment variable
@@ -35,10 +40,14 @@ def test_secret_key_from_env():
     os.environ["SECRET_KEY"] = TEST_KEY
 
     from app.core import config
+
     importlib.reload(config)
 
-    assert config.settings.SECRET_KEY == TEST_KEY, "SECRET_KEY should be read from the environment variable"
+    assert config.settings.SECRET_KEY == TEST_KEY, (
+        "SECRET_KEY should be read from the environment variable"
+    )
     print(f"Key from ENV: {config.settings.SECRET_KEY}")
+
 
 if __name__ == "__main__":
     try:

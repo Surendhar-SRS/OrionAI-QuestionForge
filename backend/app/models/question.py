@@ -2,9 +2,10 @@ from typing import TYPE_CHECKING, Optional, List, Dict, Any
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON
 
+
 class QuestionBase(SQLModel):
     text: str
-    type: str # MCQ, Short, Long
+    type: str  # MCQ, Short, Long
     marks: int
     bloom_level: str
     difficulty: str
@@ -13,6 +14,7 @@ class QuestionBase(SQLModel):
     rubric: str
     course_id: Optional[int] = Field(default=None, foreign_key="course.id")
     accepted: bool = Field(default=False)
+
 
 class Question(QuestionBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

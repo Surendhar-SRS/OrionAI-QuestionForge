@@ -13,7 +13,7 @@ describe('api.ts', () => {
       const mockResponse = { data: mockData };
 
       // Use vi.spyOn to intercept api.post
-      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as unknown);
 
       // Act
       const result = await register('test@example.com', 'password123', 'Test User');
@@ -48,7 +48,7 @@ describe('api.ts', () => {
       const mockResponse = { data: mockData };
 
       // Use vi.spyOn to intercept api.get
-      vi.spyOn(api, 'get').mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(api, 'get').mockResolvedValueOnce(mockResponse as unknown);
 
       // Act
       const result = await getCourses();

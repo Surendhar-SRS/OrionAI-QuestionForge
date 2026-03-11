@@ -1,4 +1,3 @@
-import pytest
 import sys
 from unittest.mock import MagicMock
 
@@ -13,12 +12,16 @@ mock_auditor = MagicMock()
 # Let's just mock PGVector in langchain_postgres.vectorstores instead,
 # so RAGService() can initialize without hitting the database.
 
+
 class MockPGVector:
     def __init__(self, *args, **kwargs):
         pass
+
     def add_documents(self, *args, **kwargs):
         pass
+
     def similarity_search(self, *args, **kwargs):
         return []
 
-sys.modules['langchain_postgres.vectorstores'] = MagicMock(PGVector=MockPGVector)
+
+sys.modules["langchain_postgres.vectorstores"] = MagicMock(PGVector=MockPGVector)
