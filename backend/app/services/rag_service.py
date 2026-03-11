@@ -27,38 +27,41 @@ class RAGService:
             use_jsonb=True,
         )
 
-    def _sync_ingest_document(self, file_path: str, course_id: int):
+    def _prepare_documents(self, file_path: str, course_id: int):
+        """CPU-bound text processing."""
+        if file_path.endswith(".pdf"):
+            loader = PyPDFLoader(file_path)
+        else:
+            loader = TextLoader(file_path)
+
+        docs = loader.load()
+
+        # Split text
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500, chunk_overlap=50
+        )
+        splits = text_splitter.split_documents(docs)
+
+        # Add metadata
+        for split in splits:
+            split.metadata["course_id"] = course_id
+            split.metadata["source"] = os.path.basename(file_path)
+
+        return splits
+
+    async def ingest_document(self, file_path: str, course_id: int):
         try:
-            if file_path.endswith(".pdf"):
-                loader = PyPDFLoader(file_path)
-            else:
-                loader = TextLoader(file_path)
+            # Run CPU-bound/synchronous file reading and splitting in a background thread
+            splits = await asyncio.to_thread(self._prepare_documents, file_path, course_id)
 
-            docs = loader.load()
-
-            # Split text
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=500, chunk_overlap=50
-            )
-            splits = text_splitter.split_documents(docs)
-
-            # Add metadata
-            for split in splits:
-                split.metadata["course_id"] = course_id
-                split.metadata["source"] = os.path.basename(file_path)
-
-            # Store in Vector DB
-            self.vector_store.add_documents(splits)
+            # Use native async method for the network/DB I/O vector store insertion
+            await self.vector_store.aadd_documents(splits)
             logger.info(
                 f"Successfully ingested {len(splits)} chunks for course {course_id}"
             )
         except Exception as e:
             logger.error(f"Error during document ingestion: {e}")
             raise e
-
-    async def ingest_document(self, file_path: str, course_id: int):
-        # Run synchronous Langchain/PGVector logic in a background thread to prevent blocking the event loop
-        await asyncio.to_thread(self._sync_ingest_document, file_path, course_id)
 
     def _sync_retrieve_context(
         self, query: str, course_id: int, k: int = 5
