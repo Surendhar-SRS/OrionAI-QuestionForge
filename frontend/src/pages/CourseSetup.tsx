@@ -113,7 +113,7 @@ const CourseSetup = () => {
                     )}
                 >
                     <AnimatePresence>
-                        {courses?.map((course: any) => (
+                        {courses?.map((course: Record<string, unknown>) => (
                             <motion.div
                                 layout
                                 initial={{ opacity: 0, scale: 0.9 }}

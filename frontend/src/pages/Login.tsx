@@ -22,7 +22,7 @@ const AuthPage = () => {
             setAuth({ id: 0, email, full_name: 'User' }, data.access_token);
             navigate('/');
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
             setError(err.response?.data?.detail || 'Authentication failed. Please check your credentials.');
         }
     });
@@ -33,7 +33,7 @@ const AuthPage = () => {
             setIsLogin(true);
             setError('');
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
             setError(err.response?.data?.detail || 'Registration failed. Please try again.');
         }
     });
