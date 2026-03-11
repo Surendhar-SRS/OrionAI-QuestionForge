@@ -1,9 +1,47 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { register, getCourses, api } from './api';
+import { register, login, getCourses, api } from './api';
 
 describe('api.ts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+
+  describe('login', () => {
+    it('should call api.post with correct parameters and return response data', async () => {
+      // Arrange
+      const mockData = { access_token: 'fake-token', token_type: 'bearer' };
+      const mockResponse = { data: mockData };
+
+      // Use vi.spyOn to intercept api.post
+      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as unknown);
+
+      // Act
+      const result = await login('test@example.com', 'password123');
+
+      // Assert
+      expect(api.post).toHaveBeenCalledTimes(1);
+
+      const expectedFormData = new URLSearchParams();
+      expectedFormData.append('username', 'test@example.com');
+      expectedFormData.append('password', 'password123');
+
+      expect(api.post).toHaveBeenCalledWith('/auth/login', expectedFormData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+      expect(result).toEqual(mockData);
+    });
+
+    it('should throw an error if api.post fails', async () => {
+      // Arrange
+      const mockError = new Error('Network Error');
+      vi.spyOn(api, 'post').mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(login('test@example.com', 'password123')).rejects.toThrow('Network Error');
+    });
   });
 
   describe('register', () => {
