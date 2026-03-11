@@ -83,15 +83,14 @@ async def ingest_document(
         await rag_service.ingest_document(file_location, course_id)
         
         # Save record to DB
-        async with AsyncSession(engine) as session:
-            doc = Document(
-                type="Uploaded", 
-                content_hash=file_hash,
-                file_path=file_location, 
-                course_id=course_id
-            )
-            session.add(doc)
-            await session.commit()
+        doc = Document(
+            type="Uploaded",
+            content_hash=file_hash,
+            file_path=file_location,
+            course_id=course_id
+        )
+        session.add(doc)
+        await session.commit()
             
         return {"status": "Ingested", "filename": safe_filename}
     finally:
@@ -131,11 +130,10 @@ async def generate_question_endpoint(
         tags={} # Agent tags
     )
     
-    async with AsyncSession(engine) as session:
-        session.add(question)
-        await session.commit()
-        await session.refresh(question)
-        return question
+    session.add(question)
+    await session.commit()
+    await session.refresh(question)
+    return question
 
 @router.post("/audit/")
 async def audit_question_endpoint(
@@ -143,30 +141,29 @@ async def audit_question_endpoint(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(auth.get_current_user)
 ):
-    async with AsyncSession(engine) as session:
-        question = await session.get(Question, request.question_id)
-        if not question:
-            raise HTTPException(status_code=404, detail="Question not found")
+    question = await session.get(Question, request.question_id)
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    # Verify ownership via course
+    course = await session.get(Course, question.course_id)
+    if not course or course.creator_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this question")
         
-        # Verify ownership via course
-        course = await session.get(Course, question.course_id)
-        if not course or course.creator_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized to access this question")
-            
-        audit_result = await auditor_agent.audit_question(question.dict(), request.topic)
-        
-        # Save Log
-        log = AuditLog(
-            iteration_id="manual_1",
-            ai_critique=audit_result.get("feedback", ""),
-            actions_taken=str(audit_result.get("actions", [])),
-            question_id=request.question_id,
-            metrics_snapshot={"score": audit_result.get("score")}
-        )
-        session.add(log)
-        await session.commit()
-        
-        return audit_result
+    audit_result = await auditor_agent.audit_question(question.dict(), request.topic)
+
+    # Save Log
+    log = AuditLog(
+        iteration_id="manual_1",
+        ai_critique=audit_result.get("feedback", ""),
+        actions_taken=str(audit_result.get("actions", [])),
+        question_id=request.question_id,
+        metrics_snapshot={"score": audit_result.get("score")}
+    )
+    session.add(log)
+    await session.commit()
+
+    return audit_result
 
 @router.post("/refine/", response_model=QuestionRead)
 async def refine_question_endpoint(
@@ -174,59 +171,58 @@ async def refine_question_endpoint(
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(auth.get_current_user)
 ):
-    async with AsyncSession(engine) as session:
-        # 1. Get original question
-        db_question = await session.get(Question, request.question_id)
-        if not db_question:
-            raise HTTPException(status_code=404, detail="Question not found")
-            
-        # 2. Verify ownership
-        course = await session.get(Course, db_question.course_id)
-        if not course or course.creator_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized")
-            
-        # 3. Get context (optional, but helps to re-ground)
-        # For efficiency we might skip RAG here or just pass topic. 
-        # Let's do a lightweight context retrieval or just rely on the question itself.
-        # We'll re-fetch context to be safe.
-        context = rag_service.retrieve_context(f"{request.topic}", db_question.course_id)
-        context_str = "\n".join(context)
+    # 1. Get original question
+    db_question = await session.get(Question, request.question_id)
+    if not db_question:
+        raise HTTPException(status_code=404, detail="Question not found")
         
-        # 4. Call Generator Agent to Refine
-        refined_data = await generator_agent.refine_question(
-            db_question.dict(), 
-            request.critique, 
-            context_str, 
-            request.topic
-        )
+    # 2. Verify ownership
+    course = await session.get(Course, db_question.course_id)
+    if not course or course.creator_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
         
-        if not refined_data:
-            raise HTTPException(status_code=500, detail="Refinement failed")
-            
-        # 5. Update Question in DB (Or create a new version? For now, update in place)
-        # Updating in place is simpler for the UI right now.
-        db_question.text = refined_data.get("text", db_question.text)
-        db_question.answer_key = refined_data.get("answer_key", db_question.answer_key)
-        db_question.rubric = refined_data.get("rubric", db_question.rubric)
-        db_question.type = refined_data.get("type", db_question.type)
-        # Note: we generally keep bloom/difficulty unless changed, which the agent handles.
+    # 3. Get context (optional, but helps to re-ground)
+    # For efficiency we might skip RAG here or just pass topic.
+    # Let's do a lightweight context retrieval or just rely on the question itself.
+    # We'll re-fetch context to be safe.
+    context = rag_service.retrieve_context(f"{request.topic}", db_question.course_id)
+    context_str = "\n".join(context)
+
+    # 4. Call Generator Agent to Refine
+    refined_data = await generator_agent.refine_question(
+        db_question.dict(),
+        request.critique,
+        context_str,
+        request.topic
+    )
+
+    if not refined_data:
+        raise HTTPException(status_code=500, detail="Refinement failed")
         
-        session.add(db_question)
-        await session.commit()
-        await session.refresh(db_question)
-        
-        # 6. Log the refinement action
-        log = AuditLog(
-            iteration_id=f"refine_{request.question_id}",
-            ai_critique="Refinement Step",
-            actions_taken=f"Refined based on: {request.critique[:50]}...",
-            question_id=request.question_id,
-            metrics_snapshot={"score": 100} # Assume improvement
-        )
-        session.add(log)
-        await session.commit()
-        
-        return db_question
+    # 5. Update Question in DB (Or create a new version? For now, update in place)
+    # Updating in place is simpler for the UI right now.
+    db_question.text = refined_data.get("text", db_question.text)
+    db_question.answer_key = refined_data.get("answer_key", db_question.answer_key)
+    db_question.rubric = refined_data.get("rubric", db_question.rubric)
+    db_question.type = refined_data.get("type", db_question.type)
+    # Note: we generally keep bloom/difficulty unless changed, which the agent handles.
+
+    session.add(db_question)
+    await session.commit()
+    await session.refresh(db_question)
+
+    # 6. Log the refinement action
+    log = AuditLog(
+        iteration_id=f"refine_{request.question_id}",
+        ai_critique="Refinement Step",
+        actions_taken=f"Refined based on: {request.critique[:50]}...",
+        question_id=request.question_id,
+        metrics_snapshot={"score": 100} # Assume improvement
+    )
+    session.add(log)
+    await session.commit()
+
+    return db_question
 
 @router.get("/audit-logs/{course_id}")
 async def get_audit_logs(
