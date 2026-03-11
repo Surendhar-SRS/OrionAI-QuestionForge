@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { 
     generateQuestion, 
@@ -75,8 +75,15 @@ const Dashboard = () => {
         }
     });
 
-    const handleAuditClick = useCallback((qId: number, t: string) => {
-        auditMutation.mutate({ id: qId, t });
+    // ⚡ Bolt Optimization: Use a ref to track the latest topic without causing re-renders
+    // This prevents the entire QuestionCard list from re-rendering on every keystroke
+    const topicRef = useRef(topic);
+    useEffect(() => {
+        topicRef.current = topic;
+    }, [topic]);
+
+    const handleAuditClick = useCallback((qId: number) => {
+        auditMutation.mutate({ id: qId, t: topicRef.current });
     }, [auditMutation]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -430,7 +437,6 @@ const Dashboard = () => {
                                     <QuestionCard
                                         key={q.id} 
                                         question={q}
-                                        topic={topic}
                                         onAuditClick={handleAuditClick}
                                     />
                                 ))
@@ -445,12 +451,10 @@ const Dashboard = () => {
 
 const QuestionCard = memo(({
     question: q,
-    topic,
     onAuditClick
 }: {
     question: Question,
-    topic: string,
-    onAuditClick: (id: number, t: string) => void
+    onAuditClick: (id: number) => void
 }) => {
     return (
         <motion.div
@@ -487,7 +491,7 @@ const QuestionCard = memo(({
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => onAuditClick(q.id, topic)}
+                        onClick={() => onAuditClick(q.id)}
                         aria-label="Audit Question"
                         title="Audit Question"
                         className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-500"
