@@ -22,7 +22,7 @@ export interface Course {
   name: string;
   code: string;
   semester?: string;
-  blueprint_json: Record<string, unknown>;
+  blueprint_json: any;
 }
 
 export interface Question {

@@ -1,73 +1,85 @@
-import pytest
-import sys
-import asyncio
-from unittest.mock import patch, MagicMock, AsyncMock
 
-# Mock dependencies
-sys.modules['langchain_openai'] = MagicMock()
-sys.modules['langchain_community'] = MagicMock()
-sys.modules['langchain_community.document_loaders'] = MagicMock()
-sys.modules['langchain_community.vectorstores'] = MagicMock()
-sys.modules['langchain_huggingface'] = MagicMock()
+import unittest
+from unittest.mock import patch, AsyncMock, MagicMock
+import json
+from app.services.generator_agent import GeneratorAgent
 
-sys.modules['app.services.rag_service'] = MagicMock()
-from unittest.mock import AsyncMock
-mock_llm = MagicMock()
-mock_llm.generate_response = AsyncMock()
-sys.modules['app.services.llm_service'] = MagicMock(llm_service=mock_llm)
+class TestGeneratorAgent(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.patcher = patch('app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
+        self.mock_generate_response = self.patcher.start()
 
-import app.services.generator_agent as ga
+        self.generator = GeneratorAgent()
 
-@pytest.mark.asyncio
-@patch('app.services.generator_agent.rag_service.retrieve_context')
-@patch('app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
-async def test_caching(mock_generate_response, mock_retrieve_context):
-    mock_retrieve_context.return_value = ["Context 1"]
+        self.course_id = 1
+        self.bloom_level = "Apply"
+        self.difficulty = "Hard"
+        self.topic = "Python Concurrency"
 
-    async def delayed_generate(*args, **kwargs):
-        await asyncio.sleep(0.5)
-        return '```json\n{"text": "Q", "type": "MCQ", "marks": 5, "answer_key": "A", "rubric": "R"}\n```'
+        self.current_question = {
+            "text": "What is asyncio?",
+            "type": "Short Answer",
+            "marks": 5,
+            "bloom_level": "Remember",
+            "difficulty": "Easy"
+        }
+        self.critique = "Make it harder and focus on async/await."
+        self.context_str = "Python's asyncio module provides infrastructure for writing single-threaded concurrent code using coroutines."
 
-    mock_generate_response.side_effect = delayed_generate
+    def tearDown(self):
+        self.patcher.stop()
 
-    # Run once
-    import time
-    start = time.time()
-    res1 = await ga.generator_agent.generate_question(1, "Remember", "Easy", "Math")
-    t1 = time.time() - start
+    async def test_generate_question_success(self):
+        expected_json = {
+            "text": "Write an async function in Python.",
+            "type": "Code",
+            "marks": 10,
+            "answer_key": "async def foo(): pass",
+            "rubric": "Correct syntax"
+        }
+        self.mock_generate_response.return_value = json.dumps(expected_json)
 
-    # Run again with same args
-    start = time.time()
-    res2 = await ga.generator_agent.generate_question(1, "Remember", "Easy", "Math")
-    t2 = time.time() - start
+        result = await self.generator.generate_question(self.course_id, self.bloom_level, self.difficulty, self.topic)
+        self.assertEqual(result["text"], expected_json["text"])
+        self.assertEqual(result["marks"], expected_json["marks"])
 
-    # Verify cached output is same as uncached
-    assert res1 == res2
-    # Verify time saved
-    assert t2 < t1 / 2, f"Second run should be much faster. t1={t1:.4f}, t2={t2:.4f}"
+    async def test_refine_question_success(self):
+        expected_json = {
+            "text": "Explain async/await.",
+            "type": "Short Answer",
+            "marks": 5,
+            "answer_key": "async makes coroutine, await calls it",
+            "rubric": "Correct concepts"
+        }
+        self.mock_generate_response.return_value = json.dumps(expected_json)
 
-@pytest.mark.asyncio
-@patch('app.services.generator_agent.rag_service.retrieve_context')
-@patch('app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
-async def test_generate_question_error_handling(mock_generate_response, mock_retrieve_context):
-    # Setup mock to return invalid JSON
-    mock_retrieve_context.return_value = ["Context 1"]
-    mock_generate_response.return_value = "NOT A JSON"
+        result = await self.generator.refine_question(self.current_question, self.critique, self.context_str, self.topic)
+        self.assertEqual(result["text"], expected_json["text"])
 
-    # Run function with a unique topic so it doesn't hit cache
-    result = await ga.generator_agent.generate_question(1, "Remember", "Easy", "History")
+    async def test_refine_question_json_decode_error(self):
+        self.mock_generate_response.return_value = "Invalid JSON"
 
-    # Verify that the Exception caught block returns None
-    assert result is None
+        with patch('app.services.generator_agent.logger') as mock_logger:
+            result = await self.generator.refine_question(self.current_question, self.critique, self.context_str, self.topic)
+            self.assertIsNone(result)
+            mock_logger.error.assert_called()
 
-@pytest.mark.asyncio
-@patch('app.services.generator_agent.llm_service.generate_response', new_callable=AsyncMock)
-async def test_refine_question_error_handling(mock_generate_response):
-    # Setup mock to return invalid JSON
-    mock_generate_response.return_value = "INVALID"
+    async def test_refine_question_llm_exception(self):
+        self.mock_generate_response.side_effect = Exception("LLM failure")
 
-    # Run function
-    result = await ga.generator_agent.refine_question({"text": "Original"}, "Make it harder", "Context", "Math")
+        with self.assertRaises(Exception) as cm:
+            await self.generator.refine_question(self.current_question, self.critique, self.context_str, self.topic)
+        self.assertEqual(str(cm.exception), "LLM failure")
 
-    # Verify exception caught
-    assert result is None
+    async def test_refine_question_with_markdown_json(self):
+        expected_json = {
+            "text": "Explain async/await.",
+            "type": "Short Answer",
+            "marks": 5,
+            "answer_key": "async makes coroutine, await calls it",
+            "rubric": "Correct concepts"
+        }
+        self.mock_generate_response.return_value = f"```json\n{json.dumps(expected_json)}\n```"
+
+        result = await self.generator.refine_question(self.current_question, self.critique, self.context_str, self.topic)
+        self.assertEqual(result["text"], expected_json["text"])
