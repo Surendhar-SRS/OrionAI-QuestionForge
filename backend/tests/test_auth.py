@@ -98,3 +98,29 @@ def test_get_password_hash_special_chars():
     hashed = get_password_hash(password)
     assert hashed != password
     assert verify_password(password, hashed) is True
+
+def test_verify_password_malformed_hash():
+    password = "testpassword"
+    with pytest.raises(ValueError):
+        verify_password(password, "not_a_valid_hash")
+
+def test_verify_password_none_inputs():
+    # Passlib verify returns False or raises TypeError depending on input.
+    # verify(None, hash) raises TypeError
+    with pytest.raises(TypeError):
+        verify_password(None, "$2b$12$jZzaDFhvoDtIVdSHemwb4..TSc6oBJWV9cDZ7BhwpjcAr10hDNw72")
+
+    # verify("pass", None) returns False gracefully
+    assert verify_password("testpassword", None) is False
+
+def test_verify_password_long_password_mismatch():
+    # bcrypt truncates at 72 bytes. Passwords longer than 72 bytes that share the same first 72 bytes
+    # will both verify against the same hash. We need to verify that modifying a character WITHIN
+    # the 72 byte limit causes verification to fail.
+    password = "a" * 100
+    hashed = get_password_hash(password)
+    assert verify_password(password, hashed) is True
+
+    # Modify a character within the 72 byte limit
+    different_password = "b" + ("a" * 99)
+    assert verify_password(different_password, hashed) is False
