@@ -499,7 +499,7 @@ const QuestionCard = memo(({
                         whileTap={{ scale: 0.95 }}
                         aria-label="Report Issue"
                         title="Report Issue"
-                        className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none focus-visible:ring-[var(--primary)]"
+                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-800 focus-visible:ring-2 focus-visible:ring-red-500"
                     >
                         <AlertCircle className="w-5 h-5" />
                     </motion.button>
