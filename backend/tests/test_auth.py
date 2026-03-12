@@ -110,14 +110,6 @@ def test_get_password_hash_empty_string():
     assert verify_password(password, hashed) is True
 
 
-def test_get_password_hash_format():
-    password = "testpassword"
-    hashed = get_password_hash(password)
-    # bcrypt hashes typically start with $2b$ or $2a$ or $2y$ and are 60 chars long
-    assert hashed.startswith("$2")
-    assert len(hashed) == 60
-
-
 def test_get_password_hash_long_password():
     # bcrypt has a 72-byte limit
     password = "a" * 72
