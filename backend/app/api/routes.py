@@ -252,20 +252,33 @@ async def get_course_stats(
     if not course or course.creator_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to access this course")
 
-    # Simplified stats for now
-    total_statement = select(func.count()).select_from(Question).where(Question.course_id == course_id)
-    total_result = await session.exec(total_statement)
-    total = total_result.one()
+    # ⚡ Bolt: Single query for aggregated stats
+    statement = (
+        select(
+            func.count(Question.id).label("total"),
+            Question.bloom_level,
+            Question.difficulty
+        )
+        .where(Question.course_id == course_id)
+        .group_by(Question.bloom_level, Question.difficulty)
+    )
+    result = await session.exec(statement)
+    rows = result.all()
 
-    bloom_statement = select(Question.bloom_level, func.count()).where(Question.course_id == course_id).group_by(Question.bloom_level)
-    bloom_result = await session.exec(bloom_statement)
-    bloom_counts = dict(bloom_result.all())
-    bloom_dist = {b: bloom_counts.get(b, 0) for b in ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"]}
+    total = 0
+    bloom_dist = {b: 0 for b in ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"]}
+    diff_dist = {d: 0 for d in ["Easy", "Medium", "Hard"]}
 
-    diff_statement = select(Question.difficulty, func.count()).where(Question.course_id == course_id).group_by(Question.difficulty)
-    diff_result = await session.exec(diff_statement)
-    diff_counts = dict(diff_result.all())
-    diff_dist = {d: diff_counts.get(d, 0) for d in ["Easy", "Medium", "Hard"]}
+    for row in rows:
+        count = getattr(row, "total", row[0])
+        bloom = getattr(row, "bloom_level", row[1])
+        diff = getattr(row, "difficulty", row[2])
+
+        total += count
+        if bloom in bloom_dist:
+            bloom_dist[bloom] += count
+        if diff in diff_dist:
+            diff_dist[diff] += count
 
     return {
         "total_questions": total,
