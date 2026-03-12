@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch, AsyncMock
 from app.services.generator_agent import GeneratorAgent, QuestionSchema
 
+
 class TestGeneratorAgent(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.patcher = patch(
@@ -13,7 +14,7 @@ class TestGeneratorAgent(unittest.IsolatedAsyncioTestCase):
         # Also patch rag_service.retrieve_context so it doesn't fail
         self.patcher_rag = patch(
             "app.services.generator_agent.rag_service.retrieve_context",
-            return_value=["Mocked context"]
+            return_value=["Mocked context"],
         )
         self.mock_rag = self.patcher_rag.start()
 
