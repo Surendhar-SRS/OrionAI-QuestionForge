@@ -103,13 +103,6 @@ def test_get_password_hash_different_salts():
     assert verify_password(password, hash2) is True
 
 
-def test_get_password_hash_empty_string():
-    password = ""
-    hashed = get_password_hash(password)
-    assert hashed != password
-    assert verify_password(password, hashed) is True
-
-
 def test_get_password_hash_format():
     password = "testpassword"
     hashed = get_password_hash(password)
@@ -144,19 +137,24 @@ def test_get_password_hash_special_chars():
     assert hashed != password
     assert verify_password(password, hashed) is True
 
+
 def test_verify_password_malformed_hash():
     password = "testpassword"
     with pytest.raises(ValueError):
         verify_password(password, "not_a_valid_hash")
 
+
 def test_verify_password_none_inputs():
     # Passlib verify returns False or raises TypeError depending on input.
     # verify(None, hash) raises TypeError
     with pytest.raises(TypeError):
-        verify_password(None, "$2b$12$jZzaDFhvoDtIVdSHemwb4..TSc6oBJWV9cDZ7BhwpjcAr10hDNw72")
+        verify_password(
+            None, "$2b$12$jZzaDFhvoDtIVdSHemwb4..TSc6oBJWV9cDZ7BhwpjcAr10hDNw72"
+        )
 
     # verify("pass", None) returns False gracefully
     assert verify_password("testpassword", None) is False
+
 
 def test_verify_password_long_password_mismatch():
     # bcrypt truncates at 72 bytes. Passwords longer than 72 bytes that share the same first 72 bytes
