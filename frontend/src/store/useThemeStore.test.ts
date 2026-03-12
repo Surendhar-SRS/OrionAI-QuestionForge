@@ -1,45 +1,43 @@
+/* @vitest-environment jsdom */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useThemeStore } from './useThemeStore';
 
 describe('useThemeStore', () => {
   beforeEach(() => {
-    // Reset the store before each test to ensure a clean state
-    useThemeStore.setState({ theme: 'dark' });
-    global.localStorage.clear();
+    // Clear localStorage to prevent test pollution
+    localStorage.clear();
+
+    // Manually reset the store's in-memory state
+    useThemeStore.setState({
+      theme: 'dark' // The default state
+    });
   });
 
-  it('should initialize with the dark theme as default', () => {
-    const { theme } = useThemeStore.getState();
-    expect(theme).toBe('dark');
+  it('should have an initial theme of "dark"', () => {
+    const state = useThemeStore.getState();
+    expect(state.theme).toBe('dark');
   });
 
   it('should toggle theme from dark to light', () => {
-    const { toggleTheme } = useThemeStore.getState();
-    toggleTheme();
-
+    useThemeStore.getState().toggleTheme();
     expect(useThemeStore.getState().theme).toBe('light');
   });
 
   it('should toggle theme from light to dark', () => {
-    useThemeStore.setState({ theme: 'light' });
-    const { toggleTheme } = useThemeStore.getState();
-    toggleTheme();
+    // Set to light first
+    useThemeStore.getState().setTheme('light');
+    expect(useThemeStore.getState().theme).toBe('light');
 
+    // Toggle back to dark
+    useThemeStore.getState().toggleTheme();
     expect(useThemeStore.getState().theme).toBe('dark');
   });
 
-  it('should explicitly set the theme to light', () => {
-    const { setTheme } = useThemeStore.getState();
-    setTheme('light');
-
+  it('should set theme to a specific value', () => {
+    useThemeStore.getState().setTheme('light');
     expect(useThemeStore.getState().theme).toBe('light');
-  });
 
-  it('should explicitly set the theme to dark', () => {
-    useThemeStore.setState({ theme: 'light' });
-    const { setTheme } = useThemeStore.getState();
-    setTheme('dark');
-
+    useThemeStore.getState().setTheme('dark');
     expect(useThemeStore.getState().theme).toBe('dark');
   });
 });
