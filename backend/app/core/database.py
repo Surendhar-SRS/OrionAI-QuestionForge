@@ -1,6 +1,4 @@
-import os
 from sqlalchemy.ext.asyncio import create_async_engine
+from app.core.config import settings
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://localhost:5432/qbank_db")
-
-engine = create_async_engine(DATABASE_URL, echo=True, future=True)
+engine = create_async_engine(settings.DATABASE_URL, echo=True, future=True)
