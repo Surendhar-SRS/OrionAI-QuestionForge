@@ -6,7 +6,7 @@ from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_postgres.vectorstores import PGVector
-from app.core.database import DATABASE_URL
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class RAGService:
     def __init__(self):
         self.embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
         # PGVector connection string needs strict postgresql:// format, not postgresql+asyncpg://
-        self.connection_string = DATABASE_URL.replace("+asyncpg", "")
+        self.connection_string = settings.DATABASE_URL.replace("+asyncpg", "")
 
         self.vector_store = PGVector(
             embeddings=self.embeddings,
