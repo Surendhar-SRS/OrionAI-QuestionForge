@@ -44,7 +44,7 @@ class RAGService:
             text_splitter = RecursiveCharacterTextSplitter(
                 chunk_size=500, chunk_overlap=50
             )
-            splits = text_splitter.split_documents(docs)
+            splits = await asyncio.to_thread(text_splitter.split_documents, docs)
 
             # Add metadata
             for split in splits:
