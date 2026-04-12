@@ -27,7 +27,7 @@ class Settings:
         SECRET_KEY = secrets.token_urlsafe(32)
 
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30  # 30 minutes
 
     BACKEND_CORS_ORIGINS: list[str] = [
         origin.strip()
