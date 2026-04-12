@@ -1,6 +1,7 @@
 import asyncio
 import os
 import logging
+from functools import lru_cache
 from typing import List
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -13,6 +14,18 @@ logger = logging.getLogger(__name__)
 # Use a local embedding model
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 
+
+
+@lru_cache(maxsize=128)
+def _retrieve_context_cached(vector_store, query: str, course_id: int, k: int) -> List[str]:
+    try:
+        docs = vector_store.similarity_search(
+            query, k=k, filter={"course_id": course_id}
+        )
+        return [doc.page_content for doc in docs]
+    except Exception as e:
+        logger.error(f"Error during context retrieval: {e}")
+        return []
 
 class RAGService:
     def __init__(self):
@@ -60,6 +73,8 @@ class RAGService:
             logger.info(
                 f"Successfully ingested {len(splits)} chunks for course {course_id}"
             )
+            # Invalidate context cache when new documents are ingested
+            _retrieve_context_cached.cache_clear()
         except Exception as e:
             logger.error(f"Error during document ingestion: {e}")
             raise e
@@ -67,14 +82,7 @@ class RAGService:
     def _sync_retrieve_context(
         self, query: str, course_id: int, k: int = 5
     ) -> List[str]:
-        try:
-            docs = self.vector_store.similarity_search(
-                query, k=k, filter={"course_id": course_id}
-            )
-            return [doc.page_content for doc in docs]
-        except Exception as e:
-            logger.error(f"Error during context retrieval: {e}")
-            return []
+        return _retrieve_context_cached(self.vector_store, query, course_id, k)
 
     def retrieve_context(self, query: str, course_id: int, k: int = 5) -> List[str]:
         # Keep synchronous version for existing calls inside other asyncio.to_thread blocks
