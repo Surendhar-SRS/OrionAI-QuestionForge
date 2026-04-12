@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
-    "axios": "^1.13.6",
+    "axios": "^1.15.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.24.7",
     "lucide-react": "^0.562.0",
@@ -39,7 +39,7 @@
     "autoprefixer": "^10.4.23",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "electron": "^39.2.7",
+    "electron": "^39.8.5",
     "electron-builder": "^26.8.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -50,7 +50,7 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4",
+    "vite": "^7.3.2",
     "vitest": "^4.0.18",
     "wait-on": "^9.0.3"
   },
