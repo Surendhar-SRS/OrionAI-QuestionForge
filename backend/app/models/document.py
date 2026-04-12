@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Optional
+# ruff: noqa: F821
+from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship
 
 
@@ -12,7 +13,3 @@ class DocumentBase(SQLModel):
 class Document(DocumentBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     course: Optional["Course"] = Relationship(back_populates="documents")
-
-
-if TYPE_CHECKING:
-    from .course import Course
