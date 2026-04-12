@@ -90,6 +90,3 @@ class TestGeneratorAgent(unittest.IsolatedAsyncioTestCase):
         )
         self.assertIsNone(result)
 
-    async def test_refine_question_with_markdown_json(self):
-        # We don't need markdown testing anymore because instructor guarantees structured output objects
-        pass

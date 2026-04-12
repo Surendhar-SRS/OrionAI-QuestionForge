@@ -3,7 +3,7 @@ import os
 import sys
 from alembic.config import Config
 from alembic import command
-from app.core.database import DATABASE_URL
+from app.core.config import settings
 
 # Add the current directory to the sys.path so that the 'app' module can be found
 sys.path.append(os.getcwd())
@@ -19,7 +19,7 @@ def run_migrations():
     alembic_cfg = Config("alembic.ini")
 
     # Override the sqlalchemy.url in alembic.ini with the environment variable
-    alembic_cfg.set_main_option("sqlalchemy.url", DATABASE_URL)
+    alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
     try:
         # Run the 'upgrade head' command
