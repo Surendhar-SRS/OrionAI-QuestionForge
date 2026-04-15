@@ -1,6 +1,7 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
+from sqlalchemy.exc import SQLAlchemyError
 
 
 @pytest.fixture
@@ -146,7 +147,7 @@ def test_retrieve_context_success(rag_service):
 
 
 def test_retrieve_context_error(rag_service):
-    rag_service.vector_store.similarity_search.side_effect = Exception("DB error")
+    rag_service.vector_store.similarity_search.side_effect = SQLAlchemyError("DB error")
 
     results = rag_service.retrieve_context("query", 1)
 

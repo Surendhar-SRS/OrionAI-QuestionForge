@@ -3,6 +3,7 @@ import os
 import logging
 from functools import lru_cache
 from typing import List
+from sqlalchemy.exc import SQLAlchemyError
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -24,7 +25,7 @@ def _retrieve_context_cached(
             query, k=k, filter={"course_id": course_id}
         )
         return [doc.page_content for doc in docs]
-    except Exception as e:
+    except SQLAlchemyError as e:
         logger.error(f"Error during context retrieval: {e}")
         return []
 
