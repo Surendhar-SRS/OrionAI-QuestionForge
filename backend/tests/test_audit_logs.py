@@ -2,7 +2,7 @@ import httpx
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import SQLModel
 from sqlmodel.pool import StaticPool
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -22,9 +22,8 @@ engine = create_async_engine(
     poolclass=StaticPool,
 )
 
-async_session_maker = sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
-)
+async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
 
 @pytest_asyncio.fixture
 async def session():
@@ -37,15 +36,19 @@ async def session():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
 
+
 @pytest_asyncio.fixture
 async def client(session):
     def _get_session_override():
         return session
 
     app.dependency_overrides[get_session] = _get_session_override
-    async with AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         yield ac
     app.dependency_overrides.clear()
+
 
 @pytest_asyncio.fixture
 async def test_user(session):
@@ -55,13 +58,17 @@ async def test_user(session):
     await session.refresh(user)
     return user
 
+
 @pytest_asyncio.fixture
 async def other_user(session):
-    user = User(email="other@example.com", hashed_password="fake", full_name="Other User")
+    user = User(
+        email="other@example.com", hashed_password="fake", full_name="Other User"
+    )
     session.add(user)
     await session.commit()
     await session.refresh(user)
     return user
+
 
 @pytest.mark.asyncio
 async def test_get_audit_logs_success(client, session, test_user):
@@ -83,7 +90,7 @@ async def test_get_audit_logs_success(client, session, test_user):
         difficulty="Easy",
         answer_key="4",
         rubric="Correct answer gets 5 marks",
-        course_id=course.id
+        course_id=course.id,
     )
     session.add(question)
     await session.commit()
@@ -95,7 +102,7 @@ async def test_get_audit_logs_success(client, session, test_user):
         ai_critique="Good",
         actions_taken="None",
         question_id=question.id,
-        metrics_snapshot={"score": 100}
+        metrics_snapshot={"score": 100},
     )
     session.add(audit_log)
     await session.commit()
@@ -106,6 +113,7 @@ async def test_get_audit_logs_success(client, session, test_user):
     assert len(data) == 1
     assert data[0]["iteration_id"] == "test_1"
     assert data[0]["question_id"] == question.id
+
 
 @pytest.mark.asyncio
 async def test_get_audit_logs_unauthorized(client, session, test_user, other_user):
@@ -121,14 +129,18 @@ async def test_get_audit_logs_unauthorized(client, session, test_user, other_use
     assert response.status_code == 403
     assert response.json()["detail"] == "Not authorized to access this course"
 
+
 @pytest.mark.asyncio
 async def test_get_audit_logs_not_found(client, session, test_user):
     app.dependency_overrides[get_current_user] = lambda: test_user
 
     # Use a non-existent course ID
     response = await client.get("/api/audit-logs/999")
-    assert response.status_code == 403 # Current implementation returns 403 if course not found or not owner
+    assert (
+        response.status_code == 403
+    )  # Current implementation returns 403 if course not found or not owner
     assert response.json()["detail"] == "Not authorized to access this course"
+
 
 @pytest.mark.asyncio
 async def test_get_audit_logs_empty(client, session, test_user):

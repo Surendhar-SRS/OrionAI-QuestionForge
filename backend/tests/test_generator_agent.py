@@ -89,4 +89,3 @@ class TestGeneratorAgent(unittest.IsolatedAsyncioTestCase):
             self.current_question, self.critique, self.context_str, self.topic
         )
         self.assertIsNone(result)
-

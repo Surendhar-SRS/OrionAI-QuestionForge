@@ -15,9 +15,10 @@ logger = logging.getLogger(__name__)
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 
 
-
 @lru_cache(maxsize=128)
-def _retrieve_context_cached(vector_store, query: str, course_id: int, k: int) -> List[str]:
+def _retrieve_context_cached(
+    vector_store, query: str, course_id: int, k: int
+) -> List[str]:
     try:
         docs = vector_store.similarity_search(
             query, k=k, filter={"course_id": course_id}
@@ -26,6 +27,7 @@ def _retrieve_context_cached(vector_store, query: str, course_id: int, k: int) -
     except Exception as e:
         logger.error(f"Error during context retrieval: {e}")
         return []
+
 
 class RAGService:
     def __init__(self):
