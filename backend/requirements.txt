@@ -21,3 +21,4 @@ langchain-postgres
 
 cachetools
 instructor
+werkzeug
