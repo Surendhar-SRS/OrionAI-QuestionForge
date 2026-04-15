@@ -1,11 +1,41 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { register, getCourses, api, refineQuestion } from './api';
+import { register, getCourses, api, refineQuestion, createCourse } from './api';
 
 describe('api.ts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
+
+  describe('createCourse', () => {
+    it('should call api.post with correct parameters and return response data', async () => {
+      // Arrange
+      const courseData = { name: 'New Course', code: 'NC101', blueprint_json: {} };
+      const mockData = { id: 3, ...courseData };
+      const mockResponse = { data: mockData };
+
+      // Use vi.spyOn to intercept api.post
+      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as unknown);
+
+      // Act
+      const result = await createCourse(courseData);
+
+      // Assert
+      expect(api.post).toHaveBeenCalledTimes(1);
+      expect(api.post).toHaveBeenCalledWith('/courses/', courseData);
+      expect(result).toEqual(mockData);
+    });
+
+    it('should throw an error if api.post fails', async () => {
+      // Arrange
+      const courseData = { name: 'New Course', code: 'NC101', blueprint_json: {} };
+      const mockError = new Error('Network Error');
+      vi.spyOn(api, 'post').mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(createCourse(courseData)).rejects.toThrow('Network Error');
+    });
+  });
 
   describe('register', () => {
     it('should call api.post with correct parameters and return response data', async () => {
