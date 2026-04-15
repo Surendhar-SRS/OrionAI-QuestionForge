@@ -77,20 +77,27 @@ async def ingest_document(
     if not safe_filename or safe_filename == "." or safe_filename == "..":
         safe_filename = "unnamed_file"
 
-    # Use a secure temporary file
     _, extension = os.path.splitext(safe_filename)
-    with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as temp_file:
-        file_location = temp_file.name
 
     def save_file():
-        hasher = hashlib.sha256()
-        with open(file_location, "wb") as buffer:
-            while chunk := file.file.read(8192):
-                hasher.update(chunk)
-                buffer.write(chunk)
-        return hasher.hexdigest()
+        # Use a secure temporary file inside the thread to avoid blocking the event loop
+        with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as temp_file:
+            location = temp_file.name
 
-    file_hash = await asyncio.to_thread(save_file)
+        hasher = hashlib.sha256()
+        # ⚡ Bolt: Use a larger 64KB chunk size for faster I/O
+        try:
+            with open(location, "wb") as buffer:
+                while chunk := file.file.read(65536):
+                    hasher.update(chunk)
+                    buffer.write(chunk)
+            return location, hasher.hexdigest()
+        except Exception as e:
+            if os.path.exists(location):
+                os.remove(location)
+            raise e
+
+    file_location, file_hash = await asyncio.to_thread(save_file)
 
     # Ingest
     try:
