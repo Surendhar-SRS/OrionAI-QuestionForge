@@ -3,6 +3,8 @@ import os
 import sys
 from alembic.config import Config
 from alembic import command
+from alembic.util.exc import CommandError
+from sqlalchemy.exc import SQLAlchemyError
 from app.core.config import settings
 
 # Add the current directory to the sys.path so that the 'app' module can be found
@@ -25,7 +27,7 @@ def run_migrations():
         # Run the 'upgrade head' command
         command.upgrade(alembic_cfg, "head")
         logger.info("Database migrations completed successfully.")
-    except Exception as e:
+    except (CommandError, SQLAlchemyError) as e:
         logger.error(f"Error running database migrations: {e}")
         # In a real production environment, you might want to exit here
         # raise e
