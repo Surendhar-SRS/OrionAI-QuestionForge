@@ -1,1 +1,4 @@
-
+## 2026-04-15 - Hardcoded LLM API Key in llm_service.py
+**Vulnerability:** The `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_MODEL` were hardcoded as fallback defaults in `os.getenv` within `backend/app/services/llm_service.py`. This could lead to accidental exposure of development secrets if deployed without environment variables.
+**Learning:** Fallback defaults in `os.getenv` for sensitive information or infrastructure configuration are a security risk. They should be moved to a central configuration management system that enforces their presence in the environment or uses safe defaults (like empty strings).
+**Prevention:** Always use a central `Settings` class (e.g., using Pydantic or a similar pattern) to manage environment variables. Ensure that secrets have no default values or are explicitly required. Provide example configurations in a `.env.example` file instead of hardcoding them in the source code.
