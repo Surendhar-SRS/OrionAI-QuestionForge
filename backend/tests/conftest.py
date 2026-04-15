@@ -11,6 +11,12 @@ def mock_external_services():
         "langchain_community.document_loaders": MagicMock(),
         "langchain_community.vectorstores": MagicMock(),
         "langchain_huggingface": MagicMock(),
+        "langchain_postgres": MagicMock(),
+        "langchain_postgres.vectorstores": MagicMock(),
+        "langchain_text_splitters": MagicMock(),
+        "instructor": MagicMock(),
+        "openai": MagicMock(),
+        "jose": MagicMock(),
     }
     with unittest.mock.patch.dict("sys.modules", mocks):
         yield
