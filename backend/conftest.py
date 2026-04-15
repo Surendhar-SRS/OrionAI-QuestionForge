@@ -17,9 +17,6 @@ class MockPGVector:
     def __init__(self, *args, **kwargs):
         pass
 
-    def add_documents(self, *args, **kwargs):
-        pass
-
     def similarity_search(self, *args, **kwargs):
         return []
 
