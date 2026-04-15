@@ -1,7 +1,7 @@
 import pytest
+import sys
 from unittest.mock import MagicMock
 import unittest.mock
-
 
 @pytest.fixture(autouse=True, scope="session")
 def mock_external_services():
@@ -11,6 +11,28 @@ def mock_external_services():
         "langchain_community.document_loaders": MagicMock(),
         "langchain_community.vectorstores": MagicMock(),
         "langchain_huggingface": MagicMock(),
+        "langchain_postgres": MagicMock(),
+        "openai": MagicMock(),
+        "instructor": MagicMock(),
+        "langchain_core": MagicMock(),
+        "langchain_core.messages": MagicMock(),
+        "langchain_text_splitters": MagicMock(),
     }
     with unittest.mock.patch.dict("sys.modules", mocks):
         yield
+
+# Apply immediately so imports don't fail during collection
+mocks = {
+    "langchain_openai": MagicMock(),
+    "langchain_community": MagicMock(),
+    "langchain_community.document_loaders": MagicMock(),
+    "langchain_community.vectorstores": MagicMock(),
+    "langchain_huggingface": MagicMock(),
+    "langchain_postgres": MagicMock(),
+    "openai": MagicMock(),
+    "instructor": MagicMock(),
+    "langchain_core": MagicMock(),
+    "langchain_core.messages": MagicMock(),
+    "langchain_text_splitters": MagicMock(),
+}
+sys.modules.update(mocks)

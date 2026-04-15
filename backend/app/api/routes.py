@@ -190,61 +190,77 @@ async def audit_question_endpoint(
     return audit_result
 
 
+async def _verify_question_ownership(
+    session: AsyncSession, question_id: int, user_id: int
+):
+    """Fetch question and verify course ownership."""
+    db_question = await session.get(Question, question_id)
+    if not db_question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    course = await session.get(Course, db_question.course_id)
+    if not course or course.creator_id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    return db_question
+
+
+async def _retrieve_refinement_context(topic: str, course_id: int) -> str:
+    """Retrieve context string from RAG service."""
+    context = await asyncio.to_thread(
+        rag_service.retrieve_context, f"{topic}", course_id
+    )
+    return "\n".join(context)
+
+
+async def _log_refinement_action(session: AsyncSession, request_id: int, critique: str):
+    """Log the refinement action to the database."""
+    log = AuditLog(
+        iteration_id=f"refine_{request_id}",
+        ai_critique="Refinement Step",
+        actions_taken=f"Refined based on: {critique[:50]}...",
+        question_id=request_id,
+        metrics_snapshot={"score": 100},  # Assume improvement
+    )
+    session.add(log)
+    await session.commit()
+
+
 @router.post("/refine/", response_model=QuestionRead)
 async def refine_question_endpoint(
     request: RefineRequest,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(auth.get_current_user),
 ):
-    # 1. Get original question
-    db_question = await session.get(Question, request.question_id)
-    if not db_question:
-        raise HTTPException(status_code=404, detail="Question not found")
-
-    # 2. Verify ownership
-    course = await session.get(Course, db_question.course_id)
-    if not course or course.creator_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-
-    # 3. Get context (optional, but helps to re-ground)
-    # For efficiency we might skip RAG here or just pass topic.
-    # Let's do a lightweight context retrieval or just rely on the question itself.
-    # We'll re-fetch context to be safe.
-    context = await asyncio.to_thread(
-        rag_service.retrieve_context, f"{request.topic}", db_question.course_id
+    # 1. Get original question & verify ownership
+    db_question = await _verify_question_ownership(
+        session, request.question_id, current_user.id
     )
-    context_str = "\n".join(context)
 
-    # 4. Call Generator Agent to Refine
+    # 2. Get context
+    context_str = await _retrieve_refinement_context(
+        request.topic, db_question.course_id
+    )
+
+    # 3. Call Generator Agent to Refine
     refined_data = await generator_agent.refine_question(
         db_question.dict(), request.critique, context_str, request.topic
     )
-
     if not refined_data:
         raise HTTPException(status_code=500, detail="Refinement failed")
 
-    # 5. Update Question in DB (Or create a new version? For now, update in place)
-    # Updating in place is simpler for the UI right now.
+    # 4. Update Question in DB
     db_question.text = refined_data.get("text", db_question.text)
     db_question.answer_key = refined_data.get("answer_key", db_question.answer_key)
     db_question.rubric = refined_data.get("rubric", db_question.rubric)
     db_question.type = refined_data.get("type", db_question.type)
-    # Note: we generally keep bloom/difficulty unless changed, which the agent handles.
 
     session.add(db_question)
     await session.commit()
     await session.refresh(db_question)
 
-    # 6. Log the refinement action
-    log = AuditLog(
-        iteration_id=f"refine_{request.question_id}",
-        ai_critique="Refinement Step",
-        actions_taken=f"Refined based on: {request.critique[:50]}...",
-        question_id=request.question_id,
-        metrics_snapshot={"score": 100},  # Assume improvement
-    )
-    session.add(log)
-    await session.commit()
+    # 5. Log the refinement action
+    await _log_refinement_action(session, request.question_id, request.critique)
 
     return db_question
 
