@@ -26,6 +26,4 @@ class MockPGVector:
 
 sys.modules["langchain_postgres.vectorstores"] = MagicMock(PGVector=MockPGVector)
 sys.modules["instructor"] = MagicMock()
-sys.modules["openai"] = MagicMock()
 sys.modules["langchain_openai"] = MagicMock()
-sys.modules["langchain_core.messages"] = MagicMock()
