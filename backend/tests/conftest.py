@@ -4,23 +4,26 @@ import pytest
 import sys
 from unittest.mock import MagicMock
 import unittest.mock
+import sys
+
+# Apply mocks early before anything else imports them
+mocks = {
+    "langchain_openai": MagicMock(),
+    "langchain_community": MagicMock(),
+    "langchain_community.document_loaders": MagicMock(),
+    "langchain_community.vectorstores": MagicMock(),
+    "langchain_huggingface": MagicMock(),
+    "langchain_postgres": MagicMock(),
+    "langchain_core": MagicMock(),
+    "langchain_core.messages": MagicMock(),
+    "langchain_text_splitters": MagicMock(),
+    "openai": MagicMock(),
+    "instructor": MagicMock(),
+}
+sys.modules.update(mocks)
 
 @pytest.fixture(autouse=True, scope="session")
 def mock_external_services():
-    mocks = {
-        "langchain_postgres": MagicMock(),
-        "langchain_openai": MagicMock(),
-        "langchain_community": MagicMock(),
-        "langchain_community.document_loaders": MagicMock(),
-        "langchain_community.vectorstores": MagicMock(),
-        "langchain_huggingface": MagicMock(),
-        "langchain_postgres": MagicMock(),
-        "langchain_postgres.vectorstores": MagicMock(),
-        "langchain_text_splitters": MagicMock(),
-        "instructor": MagicMock(),
-        "openai": MagicMock(),
-        "jose": MagicMock(),
-    }
     with unittest.mock.patch.dict("sys.modules", mocks):
         yield
 

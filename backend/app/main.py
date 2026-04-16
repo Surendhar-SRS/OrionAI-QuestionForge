@@ -29,7 +29,7 @@ app.add_middleware(
 
 
 @app.get("/")
-def read_root():
+def health_check():
     return {"message": "Question Bank Generator API is running"}
 
 
