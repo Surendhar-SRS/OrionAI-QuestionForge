@@ -1,3 +1,5 @@
+import os
+os.environ['SECRET_KEY'] = 'test_secret_key_for_testing_123456789'
 import pytest
 import sys
 from unittest.mock import MagicMock
@@ -6,6 +8,7 @@ import unittest.mock
 @pytest.fixture(autouse=True, scope="session")
 def mock_external_services():
     mocks = {
+        "langchain_postgres": MagicMock(),
         "langchain_openai": MagicMock(),
         "langchain_community": MagicMock(),
         "langchain_community.document_loaders": MagicMock(),

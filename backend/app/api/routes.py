@@ -17,6 +17,7 @@ from app.services.rag_service import rag_service
 from app.services.generator_agent import generator_agent
 from app.services.auditor_agent import auditor_agent
 
+from werkzeug.utils import secure_filename
 import os
 import tempfile
 import hashlib
@@ -73,8 +74,8 @@ async def ingest_document(
         )
     # Save file temporarily
     filename = file.filename or "unnamed_file"
-    safe_filename = os.path.basename(filename.replace("\\", "/"))
-    if not safe_filename or safe_filename == "." or safe_filename == "..":
+    safe_filename = secure_filename(filename)
+    if not safe_filename:
         safe_filename = "unnamed_file"
 
     _, extension = os.path.splitext(safe_filename)
