@@ -1,7 +1,7 @@
 import json
 import logging
 import asyncio
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from .llm_service import llm_service
 from .rag_service import rag_service
 
@@ -46,7 +46,7 @@ class GeneratorAgent:
             data_dict["bloom_level"] = bloom_level
             data_dict["difficulty"] = difficulty
             return data_dict
-        except Exception as e:
+        except (ValidationError, ValueError) as e:
             logger.error(f"Error parsing generation: {e}")
             return None
 
@@ -77,7 +77,7 @@ class GeneratorAgent:
             data_dict["bloom_level"] = current_question.get("bloom_level", "Understand")
             data_dict["difficulty"] = current_question.get("difficulty", "Medium")
             return data_dict
-        except Exception as e:
+        except (ValidationError, ValueError) as e:
             logger.error(f"Error parsing refinement: {e}")
             return None
 
