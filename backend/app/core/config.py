@@ -1,5 +1,4 @@
 import os
-import secrets
 
 try:
     from dotenv import load_dotenv
@@ -20,11 +19,9 @@ class Settings:
     if not DATABASE_URL:
         raise ValueError("DATABASE_URL environment variable must be set")
 
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     if not SECRET_KEY:
-        # In production, this should be set in environment variables.
-        # Generating a random one for development safety.
-        SECRET_KEY = secrets.token_urlsafe(32)
+        raise ValueError("SECRET_KEY environment variable must be set")
 
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30  # 30 minutes
