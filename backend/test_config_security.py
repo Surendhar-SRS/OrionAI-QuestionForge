@@ -6,32 +6,18 @@ import importlib
 sys.path.append(os.path.join(os.getcwd(), "backend"))
 
 
-def test_secret_key_randomness():
+def test_secret_key_missing():
     # Make sure we don't have the environment variable set
     if "SECRET_KEY" in os.environ:
         del os.environ["SECRET_KEY"]
 
-    # Importing the config
-    from app.core import config
+    try:
+        from app.core import config
 
-    importlib.reload(config)
-
-    key1 = config.settings.SECRET_KEY
-    print(f"Key 1: {key1}")
-
-    # The old hardcoded value
-    OLD_SECRET_KEY = "super-secret-key-change-it-in-prod"
-    assert key1 != OLD_SECRET_KEY, "SECRET_KEY is still the insecure hardcoded default!"
-    assert len(key1) >= 32, "SECRET_KEY should be at least 32 characters long."
-
-    # Reload to check if it's re-read (it will be different if reloaded because of the class definition logic)
-    importlib.reload(config)
-    key2 = config.settings.SECRET_KEY
-    print(f"Key 2: {key2}")
-
-    assert key1 != key2, (
-        "SECRET_KEY should be re-generated for each reload of the config module if no ENV var is set"
-    )
+        importlib.reload(config)
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "SECRET_KEY environment variable must be set" in str(e)
 
 
 def test_secret_key_from_env():
@@ -51,7 +37,7 @@ def test_secret_key_from_env():
 
 if __name__ == "__main__":
     try:
-        test_secret_key_randomness()
+        test_secret_key_missing()
         test_secret_key_from_env()
         print("All security configuration tests passed!")
     except AssertionError as e:

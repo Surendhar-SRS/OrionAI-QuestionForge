@@ -1,7 +1,9 @@
+from instructor.core import InstructorError
+from openai import OpenAIError
 import json
 import logging
 from typing import List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ValidationError, Field
 from .llm_service import llm_service
 
 logger = logging.getLogger(__name__)
@@ -37,7 +39,7 @@ class AuditorAgent:
                 system_prompt="You are a strict JSON auditor.",
             )
             return audit_result.model_dump()
-        except Exception as e:
+        except (InstructorError, OpenAIError, ValidationError) as e:
             logger.error(f"Error parsing audit: {e}")
             return {"feedback": "Error parsing", "score": 0, "actions": []}
 
