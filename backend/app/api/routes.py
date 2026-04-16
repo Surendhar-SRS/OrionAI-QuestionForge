@@ -300,11 +300,7 @@ async def get_course_stats(
     }
     diff_dist = {d: 0 for d in ["Easy", "Medium", "Hard"]}
 
-    for row in rows:
-        count = getattr(row, "total", row[0])
-        bloom = getattr(row, "bloom_level", row[1])
-        diff = getattr(row, "difficulty", row[2])
-
+    for count, bloom, diff in rows:
         total += count
         if bloom in bloom_dist:
             bloom_dist[bloom] += count
