@@ -3,6 +3,7 @@ import os
 import logging
 from functools import lru_cache
 from typing import List
+from sqlalchemy.exc import SQLAlchemyError
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -24,7 +25,7 @@ def _retrieve_context_cached(
             query, k=k, filter={"course_id": course_id}
         )
         return [doc.page_content for doc in docs]
-    except Exception as e:
+    except SQLAlchemyError as e:
         logger.error(f"Error during context retrieval: {e}")
         return []
 
@@ -43,43 +44,37 @@ class RAGService:
         )
 
     async def ingest_document(self, file_path: str, course_id: int):
-        try:
-            if file_path.endswith(".pdf"):
-                loader = PyPDFLoader(file_path)
-            else:
-                loader = TextLoader(file_path)
+        if file_path.endswith(".pdf"):
+            loader = PyPDFLoader(file_path)
+        else:
+            loader = TextLoader(file_path)
 
-            # Offload the blocking load operation to a thread
-            if hasattr(loader, "aload"):
-                docs = await loader.aload()
-            else:
-                docs = await asyncio.to_thread(loader.load)
+        # Offload the blocking load operation to a thread
+        if hasattr(loader, "aload"):
+            docs = await loader.aload()
+        else:
+            docs = await asyncio.to_thread(loader.load)
 
-            # Split text (CPU bound)
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=500, chunk_overlap=50
-            )
-            splits = await asyncio.to_thread(text_splitter.split_documents, docs)
+        # Split text (CPU bound)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        splits = await asyncio.to_thread(text_splitter.split_documents, docs)
 
-            # Add metadata
-            for split in splits:
-                split.metadata["course_id"] = course_id
-                split.metadata["source"] = os.path.basename(file_path)
+        # Add metadata
+        for split in splits:
+            split.metadata["course_id"] = course_id
+            split.metadata["source"] = os.path.basename(file_path)
 
-            # Store in Vector DB (offload to thread as aadd_documents might not be fully supported/configured yet)
-            if hasattr(self.vector_store, "aadd_documents"):
-                await self.vector_store.aadd_documents(splits)
-            else:
-                await asyncio.to_thread(self.vector_store.add_documents, splits)
+        # Store in Vector DB (offload to thread as aadd_documents might not be fully supported/configured yet)
+        if hasattr(self.vector_store, "aadd_documents"):
+            await self.vector_store.aadd_documents(splits)
+        else:
+            await asyncio.to_thread(self.vector_store.add_documents, splits)
 
-            logger.info(
-                f"Successfully ingested {len(splits)} chunks for course {course_id}"
-            )
-            # Invalidate context cache when new documents are ingested
-            _retrieve_context_cached.cache_clear()
-        except Exception as e:
-            logger.error(f"Error during document ingestion: {e}")
-            raise e
+        logger.info(
+            f"Successfully ingested {len(splits)} chunks for course {course_id}"
+        )
+        # Invalidate context cache when new documents are ingested
+        _retrieve_context_cached.cache_clear()
 
     def _sync_retrieve_context(
         self, query: str, course_id: int, k: int = 5

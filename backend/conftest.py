@@ -1,3 +1,5 @@
+import os
+os.environ['SECRET_KEY'] = 'test_secret_key_for_testing_123456789'
 import sys
 from unittest.mock import MagicMock
 
@@ -17,15 +19,10 @@ class MockPGVector:
     def __init__(self, *args, **kwargs):
         pass
 
-    def add_documents(self, *args, **kwargs):
-        pass
-
     def similarity_search(self, *args, **kwargs):
         return []
 
 
 sys.modules["langchain_postgres.vectorstores"] = MagicMock(PGVector=MockPGVector)
 sys.modules["instructor"] = MagicMock()
-sys.modules["openai"] = MagicMock()
 sys.modules["langchain_openai"] = MagicMock()
-sys.modules["langchain_core.messages"] = MagicMock()

@@ -1,3 +1,5 @@
+from instructor.core import InstructorError
+from openai import OpenAIError
 import json
 import logging
 from typing import List
