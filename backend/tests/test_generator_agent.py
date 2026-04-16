@@ -74,9 +74,7 @@ class TestGeneratorAgent(unittest.IsolatedAsyncioTestCase):
 
     async def test_refine_question_json_decode_error(self):
         # In structured mode, it raises an exception if parsing fails
-        self.mock_generate_structured_response.side_effect = (
-            ValidationError.from_exception_data("Invalid JSON", line_errors=[])
-        )
+        self.mock_generate_structured_response.side_effect = ValueError("Invalid JSON")
 
         with patch("app.services.generator_agent.logger") as mock_logger:
             result = await self.generator.refine_question(
@@ -86,7 +84,7 @@ class TestGeneratorAgent(unittest.IsolatedAsyncioTestCase):
             mock_logger.error.assert_called()
 
     async def test_refine_question_llm_exception(self):
-        self.mock_generate_structured_response.side_effect = OpenAIError("LLM failure")
+        self.mock_generate_structured_response.side_effect = ValueError("LLM failure")
 
         # Refine now catches the exception and returns None, logging the error.
         result = await self.generator.refine_question(

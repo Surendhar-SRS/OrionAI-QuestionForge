@@ -35,7 +35,7 @@ async def test_audit_question_success(mock_generate_structured_response):
 async def test_audit_question_parsing_error(mock_generate_structured_response):
     from app.services.auditor_agent import auditor_agent
 
-    mock_generate_structured_response.side_effect = Exception("Parse error")
+    mock_generate_structured_response.side_effect = ValueError("Parse error")
 
     question_data = {
         "bloom_level": "Understand",
