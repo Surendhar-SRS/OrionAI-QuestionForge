@@ -1,8 +1,6 @@
 import unittest
 from unittest.mock import patch, AsyncMock
 from app.services.generator_agent import GeneratorAgent, QuestionSchema
-from pydantic import ValidationError
-from openai import OpenAIError
 
 
 class TestGeneratorAgent(unittest.IsolatedAsyncioTestCase):
