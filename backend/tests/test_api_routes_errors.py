@@ -1,6 +1,5 @@
 import pytest
 import pytest_asyncio
-import os
 import httpx
 from unittest.mock import patch, AsyncMock, MagicMock
 
@@ -9,7 +8,7 @@ from httpx import AsyncClient
 from app.main import app as main_app
 from app.api.routes import get_session
 from app.api.auth import get_current_user
-from app.models import User, Course, Document
+from app.models import User
 
 @pytest_asyncio.fixture
 async def client():
@@ -38,8 +37,8 @@ async def test_ingest_document_rag_service_exception(client):
     with patch("app.api.routes.rag_service.ingest_document", new_callable=AsyncMock) as mock_ingest:
         mock_ingest.side_effect = Exception("RAG service failed")
 
-        with patch("app.api.routes.os.remove") as mock_remove:
-            with patch("app.api.routes.os.path.exists", return_value=True):
+        with patch("aiofiles.os.remove", new_callable=AsyncMock) as mock_remove:
+            with patch("aiofiles.os.path.exists", new_callable=AsyncMock, return_value=True):
                 response = await client.post("/api/ingest/", data=data, files=files)
                 assert response.status_code == 500
 
@@ -65,9 +64,9 @@ async def test_ingest_document_save_file_exception(client):
     data = {"course_id": "1"}
 
     # Mock open inside the thread exception handling
-    with patch("builtins.open", side_effect=Exception("Disk full")):
-        with patch("app.api.routes.os.remove") as mock_remove:
-            with patch("app.api.routes.os.path.exists", return_value=True):
+    with patch("aiofiles.open", new_callable=AsyncMock, side_effect=Exception("Disk full")):
+        with patch("aiofiles.os.remove", new_callable=AsyncMock) as mock_remove:
+            with patch("aiofiles.os.path.exists", new_callable=AsyncMock, return_value=True):
                 response = await client.post("/api/ingest/", data=data, files=files)
                 assert response.status_code == 500
                 # In this case os.remove gets called by the `except Exception as e:` block inside `save_file`
