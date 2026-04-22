@@ -4,7 +4,12 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 from jose import jwt, JWTError
 from app.core.database import engine
-from app.core.auth import get_password_hash, verify_password, create_access_token
+from app.core.auth import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    DUMMY_PASSWORD_HASH,
+)
 from app.core.config import settings
 from app.models import User
 from app.schemas import UserCreate, UserRead, Token, TokenData
@@ -81,7 +86,15 @@ async def login(
     result = await session.exec(statement)
     user = result.first()
 
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    # Mitigate timing attack by always verifying a password
+    if user:
+        is_password_valid = verify_password(form_data.password, user.hashed_password)
+    else:
+        # User not found, but we still verify a dummy hash to normalize timing
+        verify_password(form_data.password, DUMMY_PASSWORD_HASH)
+        is_password_valid = False
+
+    if not user or not is_password_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
