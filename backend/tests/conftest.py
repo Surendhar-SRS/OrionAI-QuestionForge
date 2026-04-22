@@ -1,10 +1,10 @@
 import os
-os.environ['SECRET_KEY'] = 'test_secret_key_for_testing_123456789'
+
+os.environ["SECRET_KEY"] = "test_secret_key_for_testing_123456789"
 import pytest
 import sys
 from unittest.mock import MagicMock
 import unittest.mock
-import sys
 
 # Apply mocks early before anything else imports them
 mocks = {
@@ -22,10 +22,12 @@ mocks = {
 }
 sys.modules.update(mocks)
 
+
 @pytest.fixture(autouse=True, scope="session")
 def mock_external_services():
     with unittest.mock.patch.dict("sys.modules", mocks):
         yield
+
 
 # Apply immediately so imports don't fail during collection
 mocks = {
