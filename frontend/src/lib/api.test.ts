@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { register, getCourses, api, refineQuestion, createCourse } from './api';
+import { register, getCourses, api, refineQuestion, createCourse, auditQuestion } from './api';
 
 describe('api.ts', () => {
   beforeEach(() => {
@@ -129,6 +129,41 @@ describe('api.ts', () => {
 
       // Act & Assert
       await expect(refineQuestion(1, 'needs more depth', 'Biology')).rejects.toThrow('Network Error');
+    });
+  });
+
+  describe('auditQuestion', () => {
+    it('should call api.post with correct parameters and return response data', async () => {
+      // Arrange
+      const mockData = {
+        audit_results: [
+          { criterion: 'Relevance', score: 5, feedback: 'Good' }
+        ]
+      };
+      const mockResponse = { data: mockData };
+
+      // Use vi.spyOn to intercept api.post
+      vi.spyOn(api, 'post').mockResolvedValueOnce(mockResponse as unknown);
+
+      // Act
+      const result = await auditQuestion(1, 'Math');
+
+      // Assert
+      expect(api.post).toHaveBeenCalledTimes(1);
+      expect(api.post).toHaveBeenCalledWith('/audit/', {
+        question_id: 1,
+        topic: 'Math'
+      });
+      expect(result).toEqual(mockData);
+    });
+
+    it('should throw an error if api.post fails', async () => {
+      // Arrange
+      const mockError = new Error('Network Error');
+      vi.spyOn(api, 'post').mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(auditQuestion(1, 'Math')).rejects.toThrow('Network Error');
     });
   });
 });
