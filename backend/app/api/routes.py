@@ -80,25 +80,26 @@ async def ingest_document(
 
     _, extension = os.path.splitext(safe_filename)
 
-    def save_file():
-        # Use a secure temporary file inside the thread to avoid blocking the event loop
+    import aiofiles
+    import aiofiles.os
+
+    def get_temp_file():
         with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as temp_file:
-            location = temp_file.name
+            return temp_file.name
 
-        hasher = hashlib.sha256()
-        # ⚡ Bolt: Use a larger 64KB chunk size for faster I/O
-        try:
-            with open(location, "wb") as buffer:
-                while chunk := file.file.read(65536):
-                    hasher.update(chunk)
-                    buffer.write(chunk)
-            return location, hasher.hexdigest()
-        except Exception as e:
-            if os.path.exists(location):
-                os.remove(location)
-            raise e
+    file_location = await asyncio.to_thread(get_temp_file)
+    hasher = hashlib.sha256()
 
-    file_location, file_hash = await asyncio.to_thread(save_file)
+    try:
+        async with aiofiles.open(file_location, "wb") as buffer:
+            while chunk := await file.read(65536):
+                hasher.update(chunk)
+                await buffer.write(chunk)
+        file_hash = hasher.hexdigest()
+    except Exception as e:
+        if await aiofiles.os.path.exists(file_location):
+            await aiofiles.os.remove(file_location)
+        raise e
 
     # Ingest
     try:
@@ -116,8 +117,8 @@ async def ingest_document(
 
         return {"status": "Ingested", "filename": safe_filename}
     finally:
-        if os.path.exists(file_location):
-            os.remove(file_location)
+        if await aiofiles.os.path.exists(file_location):
+            await aiofiles.os.remove(file_location)
 
 
 @router.post("/generate/", response_model=QuestionRead)

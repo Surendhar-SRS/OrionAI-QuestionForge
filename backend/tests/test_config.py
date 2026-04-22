@@ -7,7 +7,7 @@ from app.core import config
 def test_settings_defaults(monkeypatch):
     # Ensure no environment variables interfere
     monkeypatch.delenv("TOKEN_URL", raising=False)
-    monkeypatch.delenv("SECRET_KEY", raising=False)
+    monkeypatch.setenv("SECRET_KEY", "test_secret_key_for_testing_123456789")
     monkeypatch.setenv("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
     monkeypatch.delenv("BACKEND_CORS_ORIGINS", raising=False)
 

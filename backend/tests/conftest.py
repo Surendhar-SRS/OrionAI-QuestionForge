@@ -4,7 +4,14 @@ import pytest
 import sys
 from unittest.mock import MagicMock
 import unittest.mock
-import sys
+
+# Create instructor structure
+class MockInstructorCore:
+    class InstructorError(Exception):
+        pass
+
+mock_instructor = MagicMock()
+mock_instructor.core = MockInstructorCore()
 
 # Apply mocks early before anything else imports them
 mocks = {
@@ -14,31 +21,23 @@ mocks = {
     "langchain_community.vectorstores": MagicMock(),
     "langchain_huggingface": MagicMock(),
     "langchain_postgres": MagicMock(),
+    "langchain_postgres.vectorstores": MagicMock(),
     "langchain_core": MagicMock(),
     "langchain_core.messages": MagicMock(),
     "langchain_text_splitters": MagicMock(),
     "openai": MagicMock(),
-    "instructor": MagicMock(),
+    "instructor": mock_instructor,
+    "instructor.core": mock_instructor.core,
 }
+
+# DO NOT mock jose, we need it to actually decode JWTs in tests!
+for key in ["jose", "passlib"]:
+    if key in sys.modules and isinstance(sys.modules[key], MagicMock):
+        del sys.modules[key]
+
 sys.modules.update(mocks)
 
 @pytest.fixture(autouse=True, scope="session")
 def mock_external_services():
     with unittest.mock.patch.dict("sys.modules", mocks):
         yield
-
-# Apply immediately so imports don't fail during collection
-mocks = {
-    "langchain_openai": MagicMock(),
-    "langchain_community": MagicMock(),
-    "langchain_community.document_loaders": MagicMock(),
-    "langchain_community.vectorstores": MagicMock(),
-    "langchain_huggingface": MagicMock(),
-    "langchain_postgres": MagicMock(),
-    "openai": MagicMock(),
-    "instructor": MagicMock(),
-    "langchain_core": MagicMock(),
-    "langchain_core.messages": MagicMock(),
-    "langchain_text_splitters": MagicMock(),
-}
-sys.modules.update(mocks)
